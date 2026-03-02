@@ -31,10 +31,10 @@ const inboxConversations = [
     tags: [], preview: 'Can you walk me through the differences and pricing?', channel: 'email', status: 'away',
   },
   {
-    id: 3, name: 'Jennifer Walsh', initials: 'JW', time: '3h',
+    id: 3, name: 'Emily Davis', initials: 'ED', time: '3h',
     gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
-    tags: [{ label: 'Hot Lead', color: theme.colors.error, bg: theme.colors.errorMuted }],
-    preview: 'Our CFO has approved the deal. We want to move forward!', channel: 'phone', status: 'online',
+    tags: [],
+    preview: "I've been trying to reset my password but keep getting an error.", channel: 'phone', status: 'online',
   },
   {
     id: 4, name: 'David Kim', initials: 'DK', time: '4h',
@@ -66,71 +66,96 @@ const inboxConversations = [
   },
 ];
 
-const interactionTimeline = [
-  {
-    id: 1, channel: 'sms', date: 'Nov 10',
-    title: 'Quick question about billing portal access',
-    time: '2:15 PM', agent: 'AI Assistant', sentiment: 'Neutral',
-    outcome: 'Resolved - sent portal link',
-    messages: [
-      { from: 'customer', name: 'Brad Pitt', text: "Hi, I can't find the billing portal. Can you send me the direct link?", time: '2:15 PM' },
-      { from: 'agent', name: 'You', text: "Of course! Here's your billing portal: billing.nextiva.com. Log in with your admin credentials.", time: '2:16 PM' },
-      { from: 'customer', name: 'Brad Pitt', text: 'Got it, thanks!', time: '2:18 PM' },
-    ],
-  },
-  {
-    id: 2, channel: 'email', date: 'Nov 20', highlight: 'Onboarding Complete',
-    title: 'Sent onboarding follow-up and training resources',
-    time: '9:00 AM', agent: 'James Wilson', sentiment: 'Positive',
-    outcome: 'Customer completed training',
-    messages: [
-      { from: 'agent', name: 'You', text: "Hi Brad, I wanted to follow up on your onboarding. I've attached the training resources and setup guide for your team.", time: '9:00 AM' },
-      { from: 'customer', name: 'Brad Pitt', text: "Thank you James! We've gone through the training materials and everything is set up. The team is loving the new system.", time: '11:45 AM' },
-    ],
-  },
-  {
-    id: 3, channel: 'phone', date: 'Dec 15', highlight: 'Contract Renewal Discussion',
-    title: 'Quarterly business review call',
-    time: '3:00 PM', agent: 'Yaniv Masjedi', duration: '45:12', sentiment: 'Positive',
-    outcome: 'Renewed contract discussion',
-    messages: [
-      { from: 'agent', name: 'You', text: 'Discussed Q3 performance metrics, usage trends, and upcoming feature roadmap. Brad expressed interest in expanding to Enterprise tier.', time: '3:00 PM' },
-      { from: 'customer', name: 'Brad Pitt', text: "We're looking to scale 3x for the holiday season. Need to understand the Enterprise migration path and pricing.", time: '3:25 PM' },
-    ],
-  },
-  {
-    id: 4, channel: 'chat', date: 'Jan 5',
-    title: 'Asked about API integration capabilities',
-    time: '11:20 AM', agent: 'AI Assistant', sentiment: 'Neutral',
-    outcome: 'Provided documentation',
-    messages: [
-      { from: 'customer', name: 'Brad Pitt', text: 'We need to integrate the Nextiva API with our internal CRM. Is there documentation for the REST API?', time: '11:20 AM' },
-      { from: 'agent', name: 'You', text: "Absolutely! Here's our API documentation: docs.nextiva.com/api. It covers authentication, endpoints, and webhook setup. Let me know if you need help with the integration.", time: '11:22 AM' },
-      { from: 'customer', name: 'Brad Pitt', text: "Perfect, I'll pass this to our dev team. Thanks!", time: '11:25 AM' },
-    ],
-  },
-  {
-    id: 5, channel: 'twitter', date: 'Jan 8', highlight: 'Public Praise',
-    title: 'Mentioned us in a positive tweet about customer support',
-    time: '4:30 PM', agent: 'Social Team', sentiment: 'Positive',
-    outcome: 'Engagement acknowledged',
-    messages: [
-      { from: 'customer', name: 'Brad Pitt', text: "Shoutout to @Nextiva for the amazing customer support! Their team went above and beyond to help us scale. Couldn't be happier. 🎉", time: '4:30 PM' },
-      { from: 'agent', name: 'You', text: "Thank you so much for the kind words, Brad! We're thrilled to be part of your growth journey. 💙", time: '4:45 PM' },
-    ],
-  },
-  {
-    id: 6, channel: 'chat', date: 'Jan 15',
-    title: 'Requested scaling options for holiday rush',
-    time: '10:30 AM', agent: 'AI Assistant', sentiment: 'Positive',
-    outcome: 'Scheduled follow-up demo',
-    messages: [
-      { from: 'customer', name: 'Brad Pitt', text: "We need to scale our call center capacity 3x for the upcoming holiday rush. What are our options?", time: '10:30 AM' },
-      { from: 'agent', name: 'You', text: "Based on your current usage, I'd recommend our Enterprise tier with auto-scaling and dedicated support. Would you like me to schedule a demo to walk through the migration?", time: '10:32 AM' },
-      { from: 'customer', name: 'Brad Pitt', text: "Yes, please schedule a demo for next week. This is a priority for us.", time: '10:35 AM' },
-    ],
-  },
-];
+const interactionTimelineMap = {
+  default: [
+    {
+      id: 1, channel: 'sms', date: 'Nov 10',
+      title: 'Quick question about billing portal access',
+      time: '2:15 PM', agent: 'AI Assistant', sentiment: 'Neutral',
+      outcome: 'Resolved - sent portal link',
+      messages: [
+        { from: 'customer', name: 'Brad Pitt', text: "Hi, I can't find the billing portal. Can you send me the direct link?", time: '2:15 PM' },
+        { from: 'agent', name: 'You', text: "Of course! Here's your billing portal: billing.nextiva.com. Log in with your admin credentials.", time: '2:16 PM' },
+        { from: 'customer', name: 'Brad Pitt', text: 'Got it, thanks!', time: '2:18 PM' },
+      ],
+    },
+    {
+      id: 2, channel: 'email', date: 'Nov 20', highlight: 'Onboarding Complete',
+      title: 'Sent onboarding follow-up and training resources',
+      time: '9:00 AM', agent: 'James Wilson', sentiment: 'Positive',
+      outcome: 'Customer completed training',
+      messages: [
+        { from: 'agent', name: 'You', text: "Hi Brad, I wanted to follow up on your onboarding. I've attached the training resources and setup guide for your team.", time: '9:00 AM' },
+        { from: 'customer', name: 'Brad Pitt', text: "Thank you James! We've gone through the training materials and everything is set up. The team is loving the new system.", time: '11:45 AM' },
+      ],
+    },
+    {
+      id: 3, channel: 'phone', date: 'Dec 15', highlight: 'Contract Renewal Discussion',
+      title: 'Quarterly business review call',
+      time: '3:00 PM', agent: 'Yaniv Masjedi', duration: '45:12', sentiment: 'Positive',
+      outcome: 'Renewed contract discussion',
+      messages: [
+        { from: 'agent', name: 'You', text: 'Discussed Q3 performance metrics, usage trends, and upcoming feature roadmap. Brad expressed interest in expanding to Enterprise tier.', time: '3:00 PM' },
+        { from: 'customer', name: 'Brad Pitt', text: "We're looking to scale 3x for the holiday season. Need to understand the Enterprise migration path and pricing.", time: '3:25 PM' },
+      ],
+    },
+    {
+      id: 4, channel: 'chat', date: 'Jan 5',
+      title: 'Asked about API integration capabilities',
+      time: '11:20 AM', agent: 'AI Assistant', sentiment: 'Neutral',
+      outcome: 'Provided documentation',
+      messages: [
+        { from: 'customer', name: 'Brad Pitt', text: 'We need to integrate the Nextiva API with our internal CRM. Is there documentation for the REST API?', time: '11:20 AM' },
+        { from: 'agent', name: 'You', text: "Absolutely! Here's our API documentation: docs.nextiva.com/api. It covers authentication, endpoints, and webhook setup. Let me know if you need help with the integration.", time: '11:22 AM' },
+        { from: 'customer', name: 'Brad Pitt', text: "Perfect, I'll pass this to our dev team. Thanks!", time: '11:25 AM' },
+      ],
+    },
+    {
+      id: 5, channel: 'twitter', date: 'Jan 8', highlight: 'Public Praise',
+      title: 'Mentioned us in a positive tweet about customer support',
+      time: '4:30 PM', agent: 'Social Team', sentiment: 'Positive',
+      outcome: 'Engagement acknowledged',
+      messages: [
+        { from: 'customer', name: 'Brad Pitt', text: "Shoutout to @Nextiva for the amazing customer support! Their team went above and beyond to help us scale. Couldn't be happier. 🎉", time: '4:30 PM' },
+        { from: 'agent', name: 'You', text: "Thank you so much for the kind words, Brad! We're thrilled to be part of your growth journey. 💙", time: '4:45 PM' },
+      ],
+    },
+    {
+      id: 6, channel: 'chat', date: 'Jan 15',
+      title: 'Requested scaling options for holiday rush',
+      time: '10:30 AM', agent: 'AI Assistant', sentiment: 'Positive',
+      outcome: 'Scheduled follow-up demo',
+      messages: [
+        { from: 'customer', name: 'Brad Pitt', text: "We need to scale our call center capacity 3x for the upcoming holiday rush. What are our options?", time: '10:30 AM' },
+        { from: 'agent', name: 'You', text: "Based on your current usage, I'd recommend our Enterprise tier with auto-scaling and dedicated support. Would you like me to schedule a demo to walk through the migration?", time: '10:32 AM' },
+        { from: 'customer', name: 'Brad Pitt', text: "Yes, please schedule a demo for next week. This is a priority for us.", time: '10:35 AM' },
+      ],
+    },
+  ],
+  3: [
+    {
+      id: 1, channel: 'email', date: 'Dec 2',
+      title: 'Welcome email — Brightwave Corp onboarded to Business Pro',
+      time: '10:00 AM', agent: 'Onboarding Team', sentiment: 'Positive',
+      outcome: 'Account setup confirmed',
+      messages: [
+        { from: 'agent', name: 'You', text: "Hi Emily, welcome to Nextiva! Your Business Pro account for Brightwave Corp is all set up. Here are your login credentials and setup guide.", time: '10:00 AM' },
+        { from: 'customer', name: 'Emily Davis', text: "Thanks! Everything looks good. I'll get the team started this week.", time: '10:45 AM' },
+      ],
+    },
+    {
+      id: 2, channel: 'chat', date: 'Jan 18',
+      title: 'Asked about adding team members to the account',
+      time: '3:30 PM', agent: 'AI Assistant', sentiment: 'Neutral',
+      outcome: 'Resolved — guided through admin panel',
+      messages: [
+        { from: 'customer', name: 'Emily Davis', text: "How do I add new team members to our Nextiva account? I need to onboard 3 more people.", time: '3:30 PM' },
+        { from: 'agent', name: 'You', text: "You can add team members under Settings > Users > Invite. I've sent you a step-by-step guide as well.", time: '3:32 PM' },
+        { from: 'customer', name: 'Emily Davis', text: "Got it, thanks!", time: '3:35 PM' },
+      ],
+    },
+  ],
+};
 
 const allConversations = {
   1: [ // Brad Pitt — Duplicate billing charge
@@ -141,8 +166,8 @@ const allConversations = {
     { id: 2, from: 'agent', name: 'You', text: "Hi Michael! Thanks for reaching out ahead of time. Let me pull up your contract details.", time: '9:17 AM', _responseId: 'nba-greet-1' },
     { id: 3, from: 'customer', name: 'Michael Torres', text: "We're considering either upgrading to Enterprise or scaling down to a smaller plan. Can you walk me through the differences and pricing?", time: '9:20 AM', sentiment: 'Neutral' },
   ],
-  3: [ // Jennifer Walsh — Deal closing
-    { id: 1, from: 'customer', name: 'Jennifer Walsh', text: 'Great news! Our CFO has approved the deal. We want to move forward with the 200-seat Enterprise plan.', time: '2:00 PM', sentiment: 'Positive' },
+  3: [ // Emily Davis — Password reset (Voice call)
+    { id: 1, from: 'customer', name: 'Emily Davis', text: "Hi, I've been trying to reset my password for the last 20 minutes but nothing is working. I keep getting an error every time I try.", time: '2:00 PM', sentiment: 'Negative' },
   ],
   4: [ // David Kim — API integration issue
     { id: 1, from: 'customer', name: 'David Kim', text: "We just completed the API integration, but we're getting intermittent 429 rate limit errors during peak hours. Our sync jobs keep failing.", time: '11:00 AM', sentiment: 'Negative' },
@@ -208,10 +233,16 @@ function classifyIntent(conversation, customerContext) {
   const wantsEnterprise = /(enterprise|upgrade|permanent|plan)/.test(text);
   const wantsSchedule = /(thursday|schedule.*call|let'?s.*schedule|works.*for us|cto)/.test(text) && /(scale|integration|enterprise|cto|api)/.test(text);
 
+  const isPasswordIssue = /(password|reset|login|log.?in|sign.?in|can'?t.*access|locked.*out|credential|forgot.*password|unable.*reset)/.test(text);
+  const isEmailVerification = /(my email|email.*is|it'?s\s+\S+@)/.test(text);
+  const isReactivationRequest = /(reactivat|can you.*activ|old domain|rebrand|wrong.*email|wrong.*domain)/.test(text);
+
   const isClosing = /(thank|thanks|helpful|appreciate|great job|awesome|see you|talk soon|that'?s (all|everything)|no.*else|we'?re.*good|all.*set|have a good|will do|good one)/.test(text)
     && !/(but|however|also.*can|one more|another|question|issue|problem with|take.*time|let me know|what.*find|can you|send me|look.*into|waiting|schedule|refund|apply|increase|go ahead)/.test(text);
 
   if (isClosing) return { mode: 'nba', intent: 'closing_gratitude', reason: 'Customer expressing gratitude / closing conversation — no KB needed', confidence: 80 };
+  if (isReactivationRequest) return { mode: 'nba', intent: 'account_reactivation', reason: 'Customer requesting account reactivation — action-focused', confidence: 90 };
+  if (isEmailVerification) return { mode: 'nba', intent: 'identity_verification', reason: 'Customer providing email for identity verification — diagnostic action needed', confidence: 88 };
   if (isGreeting && !isQuestion) return { mode: 'nba', intent: 'greeting_with_intent', reason: 'Greeting with intent signal — no question to answer yet', confidence: 70 };
   if (isContinuation) return { mode: 'both', intent: 'action_continuation', reason: 'Customer acknowledging — waiting for agent findings', confidence: 82 };
   if (isRateLimitAction && wantsEnterprise) return { mode: 'nba', intent: 'rate_limit_fix_and_upgrade', reason: 'Customer requesting rate limit fix + Enterprise upgrade — action-focused', confidence: 92 };
@@ -219,6 +250,7 @@ function classifyIntent(conversation, customerContext) {
   if (wantsSchedule) return { mode: 'nba', intent: 'schedule_enterprise_call', reason: 'Customer confirming schedule for Enterprise consultation — action-focused', confidence: 88 };
   if (isRateLimit) return { mode: 'both', intent: 'api_rate_limit_issue', reason: 'API rate limit / integration error detected — KB + diagnostic actions available', confidence: 90 };
 
+  if (isPasswordIssue) return { mode: 'both', intent: 'password_reset_issue', reason: 'Password/login issue detected — KB troubleshooting + diagnostic actions available', confidence: 88 };
   if (isFrustrated) return { mode: 'nba', intent: 'escalation_needed', reason: 'Escalation language detected', confidence: 35 };
   if (isVague && !isQuestion) return { mode: 'nba', intent: 'vague_issue', reason: 'Vague statement — diagnostic needed', confidence: 40 };
   if (isMultiPart || (isVIP && isQuestion)) return { mode: 'both', intent: isVIP ? 'vip_complex_inquiry' : 'multi_part_question', reason: isVIP ? 'VIP customer + complex inquiry' : 'Multi-part question', confidence: 65 };
@@ -316,6 +348,20 @@ function getKBResponse(conversation) {
       ],
     };
   }
+  if (/(password|reset|login|log.?in|sign.?in|can'?t.*access|locked.*out|credential|forgot.*password|unable.*reset)/.test(text)) {
+    return {
+      id: 'kb-password-reset',
+      response: `Per our Password Reset Troubleshooting Guide (ACC-2010):\n\nCommon causes of password reset failures:\n\n• Email address mismatch — user may be entering an old or incorrect email\n• Account status INACTIVE — accounts with 90+ days of inactivity are auto-deactivated\n• Expired reset link — reset links are valid for 24 hours only\n• Browser cache/cookie issues — recommend clearing cache or using incognito\n\nResolution steps:\n1. Verify the user's identity via phone number or security questions\n2. Check if the email address on file matches what the user is entering\n3. Check account status — if INACTIVE, reactivation is required before reset\n4. If all checks pass, trigger a manual password reset email from admin panel`,
+      confidence: 91,
+      source: 'Account Management Knowledge Base',
+      reasoning: 'Customer reporting password reset failure — KB article ACC-2010 covers troubleshooting steps for common reset issues including email mismatch and inactive accounts.',
+      sourceArticles: [
+        { id: 'KB-ACC-2010', title: 'Password Reset Troubleshooting Guide', relevance: 96 },
+        { id: 'KB-ACC-2015', title: 'Account Status & Reactivation Policy', relevance: 91 },
+        { id: 'KB-SEC-1050', title: 'Identity Verification Procedures', relevance: 85 },
+      ],
+    };
+  }
   if (/(latency|api|service health|status page|downtime|slow|performance|speed)/.test(text)) {
     return {
       id: 'kb-service-health',
@@ -375,7 +421,8 @@ function getNextBestActions(conversation, customerContext) {
   const isVIP = customerContext?.tags?.some(t => t.label === 'VIP');
   const firstName = customerContext?.name?.split(' ')[0] || 'there';
 
-  const isGreeting = lastCustomerMsg && /^(hi|hello|hey|good morning|good afternoon|good evening)[\s!.,]/i.test(lastCustomerMsg.text);
+  const greetingMatch = lastCustomerMsg && /^(hi|hello|hey|good morning|good afternoon|good evening)[\s!.,]/i.test(lastCustomerMsg.text);
+  const isGreeting = greetingMatch && lastCustomerMsg.text.trim().split(/\s+/).length <= 12;
 
   if (!lastCustomerMsg || isGreeting) {
     actions.push(
@@ -444,6 +491,76 @@ function getNextBestActions(conversation, customerContext) {
         postToolResponse: `Refund initiated successfully.\n\n• Reference ID: REF-ABC123\n• Amount: $2,400.00\n• Status: Processing\n• Estimated credit: 3-4 business days\n\nYou'll receive a confirmation email at your address on file. Is there anything else I can help with?`,
       },
     );
+  }
+
+  if (/(password|reset|login|log.?in|sign.?in|can'?t.*access|locked.*out|credential|forgot.*password|unable.*reset)/.test(text)) {
+    actions.push(
+      { id: 'nba-greet-verify', type: 'action', icon: 'Zap', label: `Greet & ask ${firstName} for email to verify identity`, priority: 'high',
+        immediateReply: `Hi ${firstName}, I'm sorry to hear you're having trouble with your password reset. I can definitely help with that. Can you confirm the email address associated with your account so I can look into this for you?`,
+        toolCall: null, postToolResponse: null },
+      { id: 'nba-diagnose-user', type: 'action', icon: 'Zap', label: `Diagnose username & check user status`, priority: 'high',
+        immediateReply: `Thanks ${firstName}, let me look that up now. One moment.`,
+        toolCall: { toolId: 'tool_diagnose_user', toolName: 'Diagnose User Account', parameters: { email: 'emily.davis@brightwave.io', phoneFromMetadata: '+1 (512) 555-0198' } },
+        mockResult: { emailMatch: false, registeredEmail: 'emily@brightwavecorp.io', accountStatus: 'INACTIVE', lastLogin: '92 days ago', inactiveSince: 'Nov 26, 2025', phoneMatch: true, username: 'emily.davis' },
+        resultSummary: [
+          { label: 'Email Match', value: 'No — mismatch', status: 'warning' },
+          { label: 'Registered Email', value: 'emily@brightwavecorp.io' },
+          { label: 'Account Status', value: 'INACTIVE', status: 'warning' },
+          { label: 'Last Login', value: '92 days ago' },
+          { label: 'Phone Match', value: 'Verified via call metadata', status: 'success' },
+        ],
+        postToolResponse: null,
+      },
+      { id: 'nba-password-generic', type: 'reply', icon: 'MessageSquare', label: `Suggest using Forgot Password flow`, priority: 'medium',
+        immediateReply: `${firstName}, you can try the "Forgot Password" link on the login page. It will send a reset link to the email on your account. If that doesn't work, I can manually trigger a reset from our end.`,
+        toolCall: null, postToolResponse: null },
+    );
+    return actions;
+  }
+
+  if (/(my email|email.*is|it'?s\s+\S+@)/.test(text)) {
+    actions.push(
+      { id: 'nba-diagnose-user', type: 'action', icon: 'Zap', label: `Diagnose the email entered & check user status`, priority: 'high',
+        immediateReply: `Thanks ${firstName}, let me look that up now. One moment.`,
+        toolCall: { toolId: 'tool_diagnose_user', toolName: 'Diagnose User Account', parameters: { email: 'emily.davis@brightwave.io', phoneFromMetadata: '+1 (512) 555-0198' } },
+        mockResult: { emailMatch: false, registeredEmail: 'emily@brightwavecorp.io', accountStatus: 'INACTIVE', lastLogin: '92 days ago', inactiveSince: 'Nov 26, 2025', phoneMatch: true, username: 'emily.davis' },
+        resultSummary: [
+          { label: 'Email Match', value: 'No — mismatch', status: 'warning' },
+          { label: 'Registered Email', value: 'emily@brightwavecorp.io' },
+          { label: 'Account Status', value: 'INACTIVE', status: 'warning' },
+          { label: 'Last Login', value: '92 days ago' },
+          { label: 'Phone Match', value: 'Verified via call metadata', status: 'success' },
+        ],
+        postToolResponse: null,
+      },
+    );
+    return actions;
+  }
+
+  if (/(reactivat|can you.*activ|old domain|rebrand|wrong.*email|wrong.*domain)/.test(text)) {
+    actions.push(
+      { id: 'nba-reactivate-account', type: 'action', icon: 'Zap', label: `Reactivate account & trigger password reset email`, priority: 'high',
+        immediateReply: `Absolutely, ${firstName}. Let me reactivate your account and send you a password reset email right now.`,
+        toolCall: { toolId: 'tool_reactivate_account', toolName: 'Reactivate Account & Reset Password', parameters: { userId: 'emily.davis', email: 'emily@brightwavecorp.io' } },
+        mockResult: { status: 'reactivated', resetEmailSent: true, sentTo: 'emily@brightwavecorp.io', accountStatus: 'ACTIVE', promoEligible: true, promoOffer: '20% off Business Pro Plus until Mar 31' },
+        resultSummary: [
+          { label: 'Account Status', value: 'ACTIVE', status: 'success' },
+          { label: 'Reset Email', value: 'Sent to emily@brightwavecorp.io', status: 'success' },
+          { label: 'Promo Eligible', value: 'Spring upgrade — 20% off', status: 'success' },
+        ],
+        postToolResponse: null,
+      },
+      { id: 'nba-reactivate-only', type: 'action', icon: 'Zap', label: `Reactivate account only`, priority: 'medium',
+        immediateReply: `Sure, ${firstName}. Let me reactivate your account now.`,
+        toolCall: { toolId: 'tool_reactivate_account', toolName: 'Reactivate Account & Reset Password', parameters: { userId: 'emily.davis', email: 'emily@brightwavecorp.io' } },
+        mockResult: { status: 'reactivated', resetEmailSent: false, accountStatus: 'ACTIVE' },
+        resultSummary: [
+          { label: 'Account Status', value: 'ACTIVE', status: 'success' },
+        ],
+        postToolResponse: null,
+      },
+    );
+    return actions;
   }
 
   if (/(apply|increase|raise|bump).*(rate|limit|temp)|temporary.*(increase|raise|fix)/.test(text) && /(enterprise|upgrade|permanent|plan)/.test(text)) {
@@ -877,6 +994,47 @@ function getPostActionNBAs(completedActions, customerContext) {
       );
     }
 
+    if (toolName === 'Diagnose User Account') {
+      actions.push(
+        { id: 'nba-post-diagnose-share', type: 'reply', icon: 'MessageSquare',
+          label: `Share findings — wrong email & inactive account`,
+          priority: 'high',
+          immediateReply: `${firstName}, I found two issues with your account:\n\n1. The email you entered doesn't match our records — your registered email is ${result?.registeredEmail || 'emily@brightwavecorp.io'}\n2. Your account is currently INACTIVE because there hasn't been a login in over 90 days\n\nThe good news is I've verified your identity through the phone number you're calling from. Would you like me to reactivate your account and send a password reset email to ${result?.registeredEmail || 'emily@brightwavecorp.io'}?`,
+          toolCall: null, postToolResponse: null,
+        },
+        { id: 'nba-reactivate-account', type: 'action', icon: 'Zap',
+          label: `Reactivate account & send password reset email`,
+          priority: 'high',
+          immediateReply: `Absolutely, ${firstName}. Let me reactivate your account and send a password reset email right now.`,
+          toolCall: { toolId: 'tool_reactivate_account', toolName: 'Reactivate Account & Reset Password', parameters: { userId: 'emily.davis', email: result?.registeredEmail || 'emily@brightwavecorp.io' } },
+          mockResult: { status: 'reactivated', resetEmailSent: true, sentTo: result?.registeredEmail || 'emily@brightwavecorp.io', accountStatus: 'ACTIVE', promoEligible: true, promoOffer: '20% off Business Pro Plus until Mar 31' },
+          resultSummary: [
+            { label: 'Account Status', value: 'ACTIVE', status: 'success' },
+            { label: 'Reset Email', value: `Sent to ${result?.registeredEmail || 'emily@brightwavecorp.io'}`, status: 'success' },
+            { label: 'Promo Eligible', value: 'Spring upgrade — 20% off', status: 'success' },
+          ],
+          postToolResponse: null,
+        },
+      );
+    }
+
+    if (toolName === 'Reactivate Account & Reset Password' && result?.status === 'reactivated') {
+      actions.push(
+        { id: 'nba-post-reactivate-confirm', type: 'reply', icon: 'MessageSquare',
+          label: `Confirm reactivation & share promo offer`,
+          priority: 'high',
+          immediateReply: `Great news, ${firstName}! Your account has been reactivated and the password reset email has been sent to ${result?.sentTo || 'emily@brightwavecorp.io'}. You should see it in your inbox within a minute.\n\nAlso, I wanted to mention — your account qualifies for our Spring promotion: 20% off Business Pro Plus until March 31. It includes priority support and advanced security features. Would you like me to email you the details?`,
+          toolCall: null, postToolResponse: null,
+        },
+        { id: 'nba-post-reactivate-close', type: 'reply', icon: 'MessageSquare',
+          label: `Confirm and offer Forgot Password as backup`,
+          priority: 'medium',
+          immediateReply: `All set, ${firstName}! Account is active and the reset email is on its way to ${result?.sentTo || 'emily@brightwavecorp.io'}. If you don't see it in a couple of minutes, check your spam folder or use the "Forgot Password" link on the login page — it will work now. Anything else I can help with?`,
+          toolCall: null, postToolResponse: null,
+        },
+      );
+    }
+
     if (toolName === 'System Health Check') {
       actions.push(
         { id: 'nba-post-diagnostic-reply', type: 'reply', icon: 'MessageSquare',
@@ -980,11 +1138,14 @@ function getCustomerContext(conversation) {
       recentTickets: 2, resolvedPositively: 2, sentiment: 4.2,
       tags: [],
     },
-    'Jennifer Walsh': {
-      name: 'Jennifer Walsh', accountType: 'Enterprise (Pending)', customerSince: '6 months',
-      clvScore: 'High ($72,000 projected)', churnRisk: 'Low', churnPercent: '5%',
-      recentTickets: 0, resolvedPositively: 0, sentiment: 4.8,
-      tags: [{ label: 'Hot Lead', color: theme.colors.error, bg: theme.colors.errorMuted }],
+    'Emily Davis': {
+      name: 'Emily Davis', accountType: 'Business Pro', customerSince: '1 year',
+      clvScore: 'Medium ($14,400)', churnRisk: 'Low', churnPercent: '8%',
+      recentTickets: 1, resolvedPositively: 1, sentiment: 4.0,
+      tags: [],
+      phone: '+1 (512) 555-0198',
+      email: 'emily@brightwavecorp.io',
+      company: 'Brightwave Corp',
     },
     'David Kim': {
       name: 'David Kim', accountType: 'Business Pro', customerSince: '8 months',
@@ -1464,10 +1625,28 @@ function ConversationList({ selected, setSelected, activeLayout, setActiveLayout
 function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMessages, composeText, setComposeText, pendingDraftId, setPendingDraftId, onAskNextIQ }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
+  const isVoice = conversation?.channel === 'phone';
   const messageText = composeText;
   const setMessageText = setComposeText;
   const inputRef = useRef(null);
   const [replyTo, setReplyTo] = useState(null);
+  const [callNotes, setCallNotes] = useState('');
+  const [callDuration, setCallDuration] = useState(0);
+  const callTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (isVoice) {
+      callTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
+      return () => clearInterval(callTimerRef.current);
+    }
+    return () => { if (callTimerRef.current) clearInterval(callTimerRef.current); };
+  }, [isVoice]);
+
+  const formatCallDuration = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
   const [msgReactions, setMsgReactions] = useState({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
   const quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -1542,14 +1721,28 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px', fontWeight: 600, color: colors.text }}>{conversation.name}</span>
-            <span style={{
-              fontSize: '12px', fontWeight: 600, padding: '2px 8px',
-              borderRadius: theme.radii.full, backgroundColor: theme.colors.successMuted,
-              color: theme.colors.success, display: 'flex', alignItems: 'center', gap: '4px',
-            }}>
-              <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: theme.colors.success }} />
-              Live Chat
-            </span>
+            {isVoice ? (
+              <span style={{
+                fontSize: '12px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: theme.radii.full, backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                color: '#D97706', display: 'flex', alignItems: 'center', gap: '4px',
+              }}>
+                <Phone size={11} />
+                Voice Call
+                <span style={{ fontSize: '10px', fontWeight: 700, color: theme.colors.success, marginLeft: '2px' }}>
+                  {formatCallDuration(callDuration)}
+                </span>
+              </span>
+            ) : (
+              <span style={{
+                fontSize: '12px', fontWeight: 600, padding: '2px 8px',
+                borderRadius: theme.radii.full, backgroundColor: theme.colors.successMuted,
+                color: theme.colors.success, display: 'flex', alignItems: 'center', gap: '4px',
+              }}>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: theme.colors.success }} />
+                Live Chat
+              </span>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1675,7 +1868,7 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
             </button>
           </div>
 
-          {[...interactionTimeline].reverse().map((interaction, idx) => {
+          {[...(interactionTimelineMap[conversation?.id] || interactionTimelineMap.default)].reverse().map((interaction, idx) => {
             const channelDef = {
               sms: { icon: MessageSquare, label: 'sms', color: theme.colors.warning },
               email: { icon: Mail, label: 'email', color: theme.colors.blue },
@@ -1907,8 +2100,21 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
                   fontSize: '12px', fontWeight: 600,
                   color: msg.from === 'agent' ? theme.colors.blue : theme.colors.gray500,
                   marginBottom: '3px', paddingLeft: '2px',
+                  display: 'flex', alignItems: 'center', gap: '5px',
                 }}>
                   {msg.from === 'agent' ? 'You' : conversation.name}
+                  {isVoice && (
+                    <span style={{
+                      fontSize: '10px', fontWeight: 500, color: msg.from === 'agent' ? theme.colors.blue : '#D97706',
+                      display: 'flex', alignItems: 'center', gap: '3px', opacity: 0.7,
+                    }}>
+                      {msg.from === 'agent' ? (
+                        <>{msg.autopilot ? <Zap size={9} /> : <Mic size={9} />} {msg.communicated ? 'verbal' : 'verbal'}</>
+                      ) : (
+                        <><Activity size={9} /> transcribed</>
+                      )}
+                    </span>
+                  )}
                 </div>
 
                 {/* Message bubble + hover toolbar */}
@@ -1928,10 +2134,13 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
                   <div style={{
                     padding: '10px 14px', fontSize: '14px', lineHeight: 1.5,
                     whiteSpace: 'pre-line',
-                    backgroundColor: msg.from === 'agent' ? theme.colors.blue : theme.colors.gray100,
-                    color: msg.from === 'agent' ? theme.colors.white : theme.colors.navy,
-                    borderRadius: msg.replyTo ? '0 0 16px 16px' : '16px',
-                    boxShadow: theme.shadows.xs,
+                    backgroundColor: isVoice
+                      ? (msg.from === 'agent' ? `${theme.colors.blue}08` : theme.colors.gray50)
+                      : (msg.from === 'agent' ? theme.colors.blue : theme.colors.gray100),
+                    color: isVoice ? theme.colors.navy : (msg.from === 'agent' ? theme.colors.white : theme.colors.navy),
+                    borderRadius: isVoice ? '4px' : (msg.replyTo ? '0 0 16px 16px' : '16px'),
+                    borderLeft: isVoice ? `3px solid ${msg.from === 'agent' ? theme.colors.blue : '#D97706'}` : 'none',
+                    boxShadow: isVoice ? 'none' : theme.shadows.xs,
                   }}>
                     {msg.text}
                   </div>
@@ -2041,118 +2250,181 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
       </div>
 
 
-      {/* ─── Message input ─── */}
-      <div style={{
-        padding: '12px 20px 16px', borderTop: `1px solid ${colors.border}`,
-        backgroundColor: colors.surface,
-      }}>
+      {/* ─── Message input / Call Notes ─── */}
+      {isVoice ? (
         <div style={{
-          border: `1px solid ${pendingDraftId ? theme.colors.blue : colors.inputBorder}`,
-          borderRadius: theme.radii.xl,
-          backgroundColor: colors.inputBackground, overflow: 'hidden',
-          transition: theme.transitions.fast,
-          boxShadow: pendingDraftId ? `0 0 0 2px ${theme.colors.blue}20` : 'none',
+          padding: '12px 20px 16px', borderTop: `1px solid ${colors.border}`,
+          backgroundColor: colors.surface,
         }}>
-          {pendingDraftId && (
-            <div style={{
-              padding: '6px 16px', backgroundColor: `${theme.colors.blue}08`,
-              borderBottom: `1px solid ${theme.colors.blue}15`,
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}>
-              <Edit3 size={11} color={theme.colors.blue} />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: theme.colors.blue }}>
-                Editing AI draft — review and send
-              </span>
-              <button
-                onClick={() => { setMessageText(''); setPendingDraftId(null); }}
-                style={{
-                  marginLeft: 'auto', border: 'none', background: 'none',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px',
-                }}
-              >
-                <X size={12} color={colors.textTertiary} />
-              </button>
-            </div>
-          )}
-          {replyTo && (
-            <div style={{
-              padding: '8px 16px', backgroundColor: `${theme.colors.blue}06`,
-              borderBottom: `1px solid ${colors.border}`,
-              borderLeft: `3px solid ${theme.colors.blue}`,
-              display: 'flex', alignItems: 'flex-start', gap: '8px',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.blue, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Reply size={11} /> Replying to {replyTo.name}
-                </div>
-                <div style={{ fontSize: '12px', color: colors.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyTo.text}</div>
-              </div>
-              <button onClick={() => setReplyTo(null)} style={{
-                border: 'none', background: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', padding: '2px', flexShrink: 0,
-              }}>
-                <X size={12} color={colors.textTertiary} />
-              </button>
-            </div>
-          )}
-          <div style={{ padding: '12px 16px' }}>
-            <textarea
-              ref={inputRef}
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Write a message..."
-              rows={pendingDraftId ? 4 : 1}
-              style={{
-                width: '100%', border: 'none', outline: 'none', fontSize: '14px',
-                fontFamily: theme.fonts.body, color: colors.text,
-                backgroundColor: 'transparent', resize: 'none',
-                lineHeight: '1.5',
-              }}
-            />
-          </div>
+          {/* Call status bar */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '8px 12px', borderTop: `1px solid ${colors.divider}`,
+            padding: '6px 12px', marginBottom: '8px',
+            backgroundColor: 'rgba(245, 158, 11, 0.06)',
+            borderRadius: theme.radii.lg, border: '1px solid rgba(245, 158, 11, 0.15)',
           }}>
-            <div style={{ display: 'flex', gap: '2px' }}>
-              {[Plus, Paperclip, Camera, Smile, Mic].map((Icon, i) => {
-                return (
-                  <button key={i} style={{
-                    width: '30px', height: '30px', borderRadius: theme.radii.md,
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: theme.transitions.fast,
-                  }}>
-                    <Icon size={15} color={colors.textSecondary} />
-                  </button>
-                );
-              })}
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={handleSendMessage}
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: theme.colors.success, animation: 'autopilotGlow 2s ease-in-out infinite' }} />
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#D97706' }}>Active Call</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>{formatCallDuration(callDuration)}</span>
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[{ icon: Mic, label: 'Mute' }, { icon: Phone, label: 'Hold' }].map(({ icon: Ico, label }, i) => (
+                <button key={i} title={label} style={{
+                  width: '28px', height: '28px', borderRadius: theme.radii.sm,
+                  border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Ico size={12} color={colors.textSecondary} />
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Call notes input */}
+          <div style={{
+            border: `1px solid ${colors.inputBorder}`, borderRadius: theme.radii.lg,
+            backgroundColor: colors.inputBackground, overflow: 'hidden',
+          }}>
+            <div style={{ padding: '10px 14px' }}>
+              <textarea
+                value={callNotes}
+                onChange={(e) => setCallNotes(e.target.value)}
+                placeholder="Add call notes..."
+                rows={2}
                 style={{
-                  width: '32px', height: '32px', borderRadius: theme.radii.md,
-                  border: 'none',
-                  backgroundColor: messageText.trim() ? theme.colors.blue : colors.surfaceHover,
-                  cursor: messageText.trim() ? 'pointer' : 'default',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: theme.transitions.fast,
+                  width: '100%', border: 'none', outline: 'none', fontSize: '13px',
+                  fontFamily: theme.fonts.body, color: colors.text,
+                  backgroundColor: 'transparent', resize: 'none', lineHeight: '1.5',
                 }}
-              >
-                <Send size={15} color={messageText.trim() ? '#fff' : colors.textTertiary} />
-              </button>
+              />
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '6px 12px', borderTop: `1px solid ${colors.divider}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <FileText size={13} color={colors.textTertiary} />
+                <span style={{ fontSize: '11px', color: colors.textTertiary }}>Call Notes</span>
+              </div>
+              <span style={{ fontSize: '10px', color: colors.textTertiary }}>
+                {callNotes.trim() ? 'Auto-saved' : ''}
+              </span>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div style={{
+          padding: '12px 20px 16px', borderTop: `1px solid ${colors.border}`,
+          backgroundColor: colors.surface,
+        }}>
+          <div style={{
+            border: `1px solid ${pendingDraftId ? theme.colors.blue : colors.inputBorder}`,
+            borderRadius: theme.radii.xl,
+            backgroundColor: colors.inputBackground, overflow: 'hidden',
+            transition: theme.transitions.fast,
+            boxShadow: pendingDraftId ? `0 0 0 2px ${theme.colors.blue}20` : 'none',
+          }}>
+            {pendingDraftId && (
+              <div style={{
+                padding: '6px 16px', backgroundColor: `${theme.colors.blue}08`,
+                borderBottom: `1px solid ${theme.colors.blue}15`,
+                display: 'flex', alignItems: 'center', gap: '6px',
+              }}>
+                <Edit3 size={11} color={theme.colors.blue} />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: theme.colors.blue }}>
+                  Editing AI draft — review and send
+                </span>
+                <button
+                  onClick={() => { setMessageText(''); setPendingDraftId(null); }}
+                  style={{
+                    marginLeft: 'auto', border: 'none', background: 'none',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px',
+                  }}
+                >
+                  <X size={12} color={colors.textTertiary} />
+                </button>
+              </div>
+            )}
+            {replyTo && (
+              <div style={{
+                padding: '8px 16px', backgroundColor: `${theme.colors.blue}06`,
+                borderBottom: `1px solid ${colors.border}`,
+                borderLeft: `3px solid ${theme.colors.blue}`,
+                display: 'flex', alignItems: 'flex-start', gap: '8px',
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.blue, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Reply size={11} /> Replying to {replyTo.name}
+                  </div>
+                  <div style={{ fontSize: '12px', color: colors.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyTo.text}</div>
+                </div>
+                <button onClick={() => setReplyTo(null)} style={{
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', padding: '2px', flexShrink: 0,
+                }}>
+                  <X size={12} color={colors.textTertiary} />
+                </button>
+              </div>
+            )}
+            <div style={{ padding: '12px 16px' }}>
+              <textarea
+                ref={inputRef}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Write a message..."
+                rows={pendingDraftId ? 4 : 1}
+                style={{
+                  width: '100%', border: 'none', outline: 'none', fontSize: '14px',
+                  fontFamily: theme.fonts.body, color: colors.text,
+                  backgroundColor: 'transparent', resize: 'none',
+                  lineHeight: '1.5',
+                }}
+              />
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 12px', borderTop: `1px solid ${colors.divider}`,
+            }}>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {[Plus, Paperclip, Camera, Smile, Mic].map((Icon, i) => {
+                  return (
+                    <button key={i} style={{
+                      width: '30px', height: '30px', borderRadius: theme.radii.md,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: theme.transitions.fast,
+                    }}>
+                      <Icon size={15} color={colors.textSecondary} />
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={handleSendMessage}
+                  style={{
+                    width: '32px', height: '32px', borderRadius: theme.radii.md,
+                    border: 'none',
+                    backgroundColor: messageText.trim() ? theme.colors.blue : colors.surfaceHover,
+                    cursor: messageText.trim() ? 'pointer' : 'default',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: theme.transitions.fast,
+                  }}
+                >
+                  <Send size={15} color={messageText.trim() ? '#fff' : colors.textTertiary} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2177,6 +2449,7 @@ function AutopilotBorderOverlay({ progress, borderRadius = '8px' }) {
 function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setLiveMessages, setComposeText, setPendingDraftId, nextIQQuery, clearNextIQQuery }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
+  const isVoice = conversation?.channel === 'phone';
   const [query, setQuery] = useState('');
 
   const [hoveredAction, setHoveredAction] = useState(null);
@@ -2319,9 +2592,16 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     { trigger: 'kb-billing-alerts', text: "Wonderful, thank you! Actually, while I have you — we've been thinking about upgrading to the Enterprise plan. Can you tell me more about what's included?", sentiment: 'Positive' },
     { trigger: 'kb-enterprise-tier', text: "Thursday works perfectly! Let's do the 2:00 PM slot.", sentiment: 'Positive' },
     { trigger: 'kb-scheduling', text: "That's everything. Thank you so much — this has been incredibly helpful!", sentiment: 'Positive' },
-    { trigger: 'nba-greet-1', text: "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.", sentiment: 'Negative' },
-    { trigger: 'nba-greet-2', text: "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.", sentiment: 'Negative' },
-    { trigger: 'kb-general', text: "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.", sentiment: 'Negative' },
+    { trigger: 'nba-greet-1', textFn: (name) => name === 'Emily Davis'
+      ? "Sure, it's emily.davis@brightwave.io"
+      : "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.",
+      sentimentFn: (name) => name === 'Emily Davis' ? 'Neutral' : 'Negative' },
+    { trigger: 'nba-greet-2', textFn: (name) => name === 'Emily Davis'
+      ? "It's emily.davis@brightwave.io — that's the email I've been using."
+      : "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.",
+      sentimentFn: (name) => name === 'Emily Davis' ? 'Neutral' : 'Negative' },
+    { trigger: 'kb-general', text: "Can you look into this for me? I've been having this issue for a while.", sentiment: 'Neutral' },
+    { trigger: 'kb-password-reset', text: "That makes sense. My email is emily.davis@brightwave.io — can you check if that's the right one?", sentiment: 'Neutral' },
     { trigger: 'nba-check-api-usage', text: "Okay, thank you! Let me know what you find.", sentiment: 'Neutral' },
     { trigger: 'nba-check-account-ratelimit', text: "Thanks for checking! Our sync runs about 50,000 records nightly — so yes, 300/min is definitely not enough. What are our options?", sentiment: 'Neutral' },
     { trigger: 'nba-run-api-error-log', text: "That's a lot of failures. Yes, please go ahead with the temporary increase — we can't have another night of failed syncs.", sentiment: 'Negative' },
@@ -2340,6 +2620,12 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     { trigger: 'nba-post-demo-confirm', text: "This has been incredibly helpful — you solved our immediate problem and set us up with a path forward. Thanks so much! We'll see James on Thursday.", sentiment: 'Positive' },
     { trigger: 'nba-schedule-enterprise-consult', text: "Excellent! Everything looks great. Thanks so much for the quick resolution — the temp increase and the scheduled call is exactly what we needed. See you Thursday!", sentiment: 'Positive' },
     { trigger: 'nba-reply-confirm-schedule', text: "That sounds great! Looking forward to it. Thanks for all the help today — the temp fix is a lifesaver and the Enterprise call will set us up for the long term.", sentiment: 'Positive' },
+    // Emily Davis — Password reset flow
+    { trigger: 'nba-greet-verify', text: "Sure, it's emily.davis@brightwave.io", sentiment: 'Neutral' },
+    { trigger: 'nba-post-diagnose-share', text: "Oh, that's our old domain! We rebranded last year to Brightwave Corp. Yes, please go ahead and reactivate it!", sentiment: 'Neutral' },
+    { trigger: 'nba-post-reactivate-confirm', text: "Got the email already! That was fast. And yes, I'd love to hear about the upgrade offer — send me the details! You've been incredibly helpful.", sentiment: 'Positive' },
+    { trigger: 'nba-post-reactivate-close', text: "Perfect, I see the reset email in my inbox! Thanks so much for your help — this was way easier than I expected!", sentiment: 'Positive' },
+    { trigger: 'nba-password-generic', text: "I tried that already and it didn't work — that's why I called. Can you check what's wrong?", sentiment: 'Negative' },
   ];
   const customerReplyTimer = useRef(null);
   const usedMockTriggers = useRef(new Set());
@@ -2441,6 +2727,10 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     const mockReply = mockCustomerReplies.find(r => r.trigger === triggerId);
     if (!mockReply) return;
 
+    const customerName = conversation?.name || 'Customer';
+    const replyText = mockReply.textFn ? mockReply.textFn(customerName) : mockReply.text;
+    const replySentiment = mockReply.sentimentFn ? mockReply.sentimentFn(customerName) : mockReply.sentiment;
+
     lastProcessedAgentMsgId.current = lastMsg.id;
     usedMockTriggers.current.add(triggerId);
 
@@ -2452,10 +2742,10 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
         {
           id: prev.length + 1,
           from: 'customer',
-          name: conversation?.name || 'Customer',
-          text: mockReply.text,
+          name: customerName,
+          text: replyText,
           time: timeStr,
-          sentiment: mockReply.sentiment,
+          sentiment: replySentiment,
         },
       ]);
       if (countdownRef.current) clearInterval(countdownRef.current);
@@ -2545,28 +2835,25 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
           }
         }
 
-        if (isLatestCustomerMsg && hasActionContext) {
-          const cls = { mode: 'nba', intent: 'action_follow_up', reason: 'Pending action results — generating follow-up actions', confidence: 95 };
-          const nba = getPostActionNBAs(completedActions, customerCtx);
-          map[msg.id] = { classification: cls, kbResponse: null, nba, chosenId };
-        } else {
-          const cls = classifyIntent(msgsUpTo, customerCtx);
-          const kb = (cls.mode === 'kb_response' || cls.mode === 'both')
-            ? getKBResponse(msgsUpTo) : null;
-          const nba = (cls.mode === 'nba' || cls.mode === 'both')
-            ? getNextBestActions(msgsUpTo, customerCtx) : [];
-          map[msg.id] = { classification: cls, kbResponse: kb, nba, chosenId };
-        }
+        const cls = classifyIntent(msgsUpTo, customerCtx);
+        const kb = (cls.mode === 'kb_response' || cls.mode === 'both')
+          ? getKBResponse(msgsUpTo) : null;
+        const nba = (cls.mode === 'nba' || cls.mode === 'both')
+          ? getNextBestActions(msgsUpTo, customerCtx) : [];
+        map[msg.id] = { classification: cls, kbResponse: kb, nba, chosenId };
       }
     });
     return map;
   }, [liveMessages, conversation?.name, hasActionContext, completedActions]);
 
   const latestTriggerRef = useRef(null);
+  const activeActionRef = useRef(null);
 
   useEffect(() => {
     const doScroll = () => {
-      if (latestTriggerRef.current && threadScrollRef.current) {
+      if (activeActionRef.current && threadScrollRef.current) {
+        activeActionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (latestTriggerRef.current && threadScrollRef.current) {
         const container = threadScrollRef.current;
         const el = latestTriggerRef.current;
         const containerRect = container.getBoundingClientRect();
@@ -2577,7 +2864,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     };
     const t = setTimeout(doScroll, 150);
     return () => clearTimeout(t);
-  }, [liveMessages.length, iqConversation.length]);
+  }, [liveMessages.length, iqConversation.length, hasActionContext]);
 
   const handleNextIQQuery = () => {
     if (!query.trim()) return;
@@ -2756,6 +3043,24 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
         </div>
       </div>
 
+      {/* ─── Voice Mode Banner ─── */}
+      {isVoice && (
+        <div style={{
+          padding: '6px 14px',
+          backgroundColor: 'rgba(245, 158, 11, 0.06)',
+          borderBottom: '1px solid rgba(245, 158, 11, 0.12)',
+          display: 'flex', alignItems: 'center', gap: '6px',
+        }}>
+          <Phone size={12} color="#D97706" />
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#D97706' }}>
+            Voice mode
+          </span>
+          <span style={{ fontSize: '11px', color: colors.textTertiary }}>
+            — suggestions are for verbal reference
+          </span>
+        </div>
+      )}
+
       {/* ─── Autopilot Mode Strip ─── */}
       <div style={{
         padding: '8px 14px',
@@ -2847,24 +3152,41 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                 }} />
               </div>
             </div>
+            {isVoice && autopilotDecision.type !== 'nba_action' && (
+              <div style={{
+                padding: '4px 0 2px',
+                fontSize: '10px', fontWeight: 600, color: '#D97706',
+                display: 'flex', alignItems: 'center', gap: '4px',
+              }}>
+                <Mic size={10} /> Say this to the customer:
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '6px', paddingTop: '4px' }}>
               <button onClick={handleApproveNow} style={{
                 flex: 2, padding: '6px 10px', borderRadius: theme.radii.md,
                 border: 'none',
-                backgroundColor: autopilotDecision.type === 'nba_action' ? theme.colors.success : theme.colors.blue,
+                backgroundColor: autopilotDecision.type === 'nba_action' ? theme.colors.success
+                  : (isVoice ? theme.colors.success : theme.colors.blue),
                 color: '#fff', fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
               }}>
-                {autopilotDecision.type === 'nba_action' ? <><Zap size={11} /> Execute Now</> : <><Send size={11} /> Send Now</>}
+                {autopilotDecision.type === 'nba_action'
+                  ? <><Zap size={11} /> Execute Now</>
+                  : isVoice
+                    ? <><Check size={11} /> Done — Communicated</>
+                    : <><Send size={11} /> Send Now</>
+                }
               </button>
-              <button onClick={handleEditAutopilotDraft} style={{
-                flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
-                border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
-                color: colors.text, fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-              }}>
-                <Edit3 size={11} /> Edit
-              </button>
+              {!isVoice && (
+                <button onClick={handleEditAutopilotDraft} style={{
+                  flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
+                  border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                  color: colors.text, fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                }}>
+                  <Edit3 size={11} /> Edit
+                </button>
+              )}
               <button onClick={handleCancelCountdown} style={{
                 padding: '6px 10px', borderRadius: theme.radii.md,
                 border: `1px solid ${theme.colors.error}30`, backgroundColor: theme.colors.errorMuted,
@@ -3020,8 +3342,10 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                             </div>
                           )}
                           <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <BookOpen size={12} color={theme.colors.blue} />
-                            <span style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.blue }}>KNOWLEDGE BASE RESPONSE</span>
+                            {isVoice ? <Mic size={12} color="#D97706" /> : <BookOpen size={12} color={theme.colors.blue} />}
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: isVoice ? '#D97706' : theme.colors.blue }}>
+                              {isVoice ? 'SUGGESTED TALK TRACK' : 'KNOWLEDGE BASE RESPONSE'}
+                            </span>
                             <span style={{
                               fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: theme.radii.full,
                               backgroundColor: msgKb.confidence >= 80 ? theme.colors.successMuted : msgKb.confidence >= 50 ? theme.colors.warningMuted : theme.colors.errorMuted,
@@ -3138,27 +3462,52 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                                 }}>
                                   <Zap size={12} color={countdownSent ? theme.colors.success : theme.colors.blue} />
                                   <span style={{ fontSize: '11px', fontWeight: 600, color: countdownSent ? theme.colors.success : theme.colors.blue }}>
-                                    {countdownSent ? 'Sent by Autopilot' : `Autopilot sending in ${countdown}s`}
+                                    {countdownSent
+                                      ? (isVoice ? 'Communicated by agent' : 'Sent by Autopilot')
+                                      : (isVoice ? `Say this to customer — ${countdown}s` : `Autopilot sending in ${countdown}s`)}
                                   </span>
                                 </div>
                               ) : !autopilot && (
                                 <div style={{ padding: '8px 12px 10px', display: 'flex', gap: '6px' }}>
-                                  <button onClick={handleSendAsReply} style={{
-                                    flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
-                                    border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
-                                    fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                                  }}>
-                                    <Send size={12} /> Send
-                                  </button>
-                                  <button onClick={handleEditDraft} style={{
-                                    flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
-                                    border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
-                                    color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                                  }}>
-                                    <Edit3 size={12} /> Edit
-                                  </button>
+                                  {isVoice ? (
+                                    <>
+                                      <button onClick={() => { navigator.clipboard?.writeText(kbResponse?.response || ''); }} style={{
+                                        flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
+                                        border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                        color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                      }}>
+                                        <Copy size={12} /> Copy
+                                      </button>
+                                      <button onClick={handleSendAsReply} style={{
+                                        flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
+                                        border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                        fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                      }}>
+                                        <Check size={12} /> Mark as Communicated
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={handleSendAsReply} style={{
+                                        flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
+                                        border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
+                                        fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                      }}>
+                                        <Send size={12} /> Send
+                                      </button>
+                                      <button onClick={handleEditDraft} style={{
+                                        flex: 1, padding: '8px 12px', borderRadius: theme.radii.md,
+                                        border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                        color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                      }}>
+                                        <Edit3 size={12} /> Edit
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </>
@@ -3269,45 +3618,72 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                                           {action.immediateReply}
                                         </p>
                                         <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); handleUseAction(action); }}
-                                            style={{
-                                              flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
-                                              border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
-                                              fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                              cursor: 'pointer',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                                            }}
-                                          >
-                                            <Send size={12} /> Send
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setComposeText(action.immediateReply);
-                                              setPendingDraftId(action.id);
-                                              setUsedActions(prev => new Set([...prev, action.id]));
-                                            }}
-                                            style={{
-                                              flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
-                                              border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
-                                              color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                              cursor: 'pointer',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                                            }}
-                                          >
-                                            <Edit3 size={12} /> Edit
-                                          </button>
+                                          {isVoice ? (
+                                            <>
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(action.immediateReply || ''); }}
+                                                style={{
+                                                  padding: '7px 12px', borderRadius: theme.radii.md,
+                                                  border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                                  color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                                }}
+                                              >
+                                                <Copy size={12} /> Copy
+                                              </button>
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); handleUseAction(action); }}
+                                                style={{
+                                                  flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                                  border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                                  fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                                }}
+                                              >
+                                                <Check size={12} /> Mark as Communicated
+                                              </button>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); handleUseAction(action); }}
+                                                style={{
+                                                  flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                                  border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
+                                                  fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                                }}
+                                              >
+                                                <Send size={12} /> Send
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setComposeText(action.immediateReply);
+                                                  setPendingDraftId(action.id);
+                                                  setUsedActions(prev => new Set([...prev, action.id]));
+                                                }}
+                                                style={{
+                                                  flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                                  border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                                  color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                                }}
+                                              >
+                                                <Edit3 size={12} /> Edit
+                                              </button>
+                                            </>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
                                   )}
 
-                                  {/* Reply/greeting: sent confirmation */}
+                                  {/* Reply/greeting: sent/communicated confirmation */}
                                   {isReplyAction && isDone && (
                                     <div style={{ padding: '0 10px 8px' }}>
                                       <span style={{ fontSize: '11px', color: theme.colors.success, fontWeight: 600 }}>
-                                        Sent to customer
+                                        {isVoice ? 'Communicated verbally' : 'Sent to customer'}
                                       </span>
                                     </div>
                                   )}
@@ -3438,22 +3814,45 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                                           </p>
                                           {isLastTrigger && (
                                             <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                                              <button onClick={() => handleSendActionResponse(action.id)} style={{
-                                                flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
-                                                border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
-                                                fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                                              }}>
-                                                <Send size={10} /> Send
-                                              </button>
-                                              <button onClick={() => handleEditActionResponse(action.id)} style={{
-                                                flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
-                                                border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
-                                                color: colors.text, fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
-                                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                                              }}>
-                                                <Edit3 size={10} /> Edit
-                                              </button>
+                                              {isVoice ? (
+                                                <>
+                                                  <button onClick={() => { navigator.clipboard?.writeText(aResult.postToolResponse || ''); }} style={{
+                                                    padding: '6px 10px', borderRadius: theme.radii.md,
+                                                    border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                                    color: colors.text, fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                                  }}>
+                                                    <Copy size={10} /> Copy
+                                                  </button>
+                                                  <button onClick={() => handleSendActionResponse(action.id)} style={{
+                                                    flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
+                                                    border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                                    fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                                  }}>
+                                                    <Check size={10} /> Mark as Communicated
+                                                  </button>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <button onClick={() => handleSendActionResponse(action.id)} style={{
+                                                    flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
+                                                    border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
+                                                    fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                                  }}>
+                                                    <Send size={10} /> Send
+                                                  </button>
+                                                  <button onClick={() => handleEditActionResponse(action.id)} style={{
+                                                    flex: 1, padding: '6px 10px', borderRadius: theme.radii.md,
+                                                    border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                                    color: colors.text, fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                                  }}>
+                                                    <Edit3 size={10} /> Edit
+                                                  </button>
+                                                </>
+                                              )}
                                             </div>
                                           )}
                                         </div>
@@ -3541,6 +3940,248 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
 
           return null;
         })}
+
+        {/* ─── Active Action Block: tool results + post-action NBAs ─── */}
+        {hasActionContext && (() => {
+          const completedEntries = Object.entries(actionResults).filter(([, r]) => r.status === 'complete');
+          const loadingEntries = Object.entries(actionResults).filter(([, r]) => r.status === 'loading');
+          const postActionNbas = getPostActionNBAs(completedActions, customerCtx);
+          if (completedEntries.length === 0 && loadingEntries.length === 0) return null;
+          return (
+            <div ref={activeActionRef} style={{ padding: '8px 14px 4px' }}>
+              <div style={{
+                borderRadius: theme.radii.lg, overflow: 'hidden',
+                border: `1.5px solid ${theme.colors.success}30`,
+                backgroundColor: `${theme.colors.success}03`,
+                boxShadow: `0 0 12px ${theme.colors.success}08`,
+              }}>
+                {/* Header */}
+                <div style={{
+                  padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '6px',
+                  background: `linear-gradient(135deg, ${theme.colors.success}10, ${theme.colors.purple}08)`,
+                  borderBottom: `1px solid ${theme.colors.success}15`,
+                }}>
+                  <div style={{
+                    width: '6px', height: '6px', borderRadius: '50%', backgroundColor: theme.colors.success,
+                    animation: 'autopilotGlow 1.5s ease-in-out infinite',
+                  }} />
+                  <Zap size={12} color={theme.colors.success} />
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.success, letterSpacing: '0.3px' }}>
+                    ACTION COMPLETE
+                  </span>
+                </div>
+
+                {/* Loading state */}
+                {loadingEntries.map(([actionId, res]) => (
+                  <div key={actionId} style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Cpu size={14} color={theme.colors.blue} style={{ animation: 'spin 1s linear infinite' }} />
+                    <span style={{ fontSize: '12px', color: colors.textSecondary }}>
+                      Running {res.toolName}...
+                    </span>
+                  </div>
+                ))}
+
+                {/* Completed tool results */}
+                {completedEntries.map(([actionId, res]) => (
+                  <div key={actionId} style={{ padding: '10px 12px', borderBottom: postActionNbas.length > 0 ? `1px solid ${colors.border}` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <CheckCircle size={12} color={theme.colors.success} />
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.success }}>{res.toolName}</span>
+                    </div>
+                    {res.resultSummary && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {res.resultSummary.map((item, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', borderRadius: theme.radii.sm, backgroundColor: colors.inputBackground }}>
+                            <span style={{ fontSize: '11px', color: colors.textSecondary, minWidth: '100px' }}>{item.label}</span>
+                            <span style={{
+                              fontSize: '11px', fontWeight: 600,
+                              color: item.status === 'success' ? theme.colors.success : item.status === 'warning' ? theme.colors.warning : colors.text,
+                            }}>{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Post-action NBAs — always expanded, fully interactive */}
+                {postActionNbas.length > 0 && (
+                  <div style={{ padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <Brain size={12} color={theme.colors.purple} />
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.purple }}>SUGGESTED NEXT STEPS</span>
+                      <span style={{
+                        fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: theme.radii.full,
+                        backgroundColor: theme.colors.purpleMuted, color: theme.colors.purple, marginLeft: 'auto',
+                      }}>{postActionNbas.length}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {postActionNbas.map((action, actionIdx) => {
+                        const typeConf = nbaTypeConfig[action.type] || nbaTypeConfig.action;
+                        const prioConf = priorityConfig[action.priority] || priorityConfig.medium;
+                        const TypeIcon = typeConf.icon;
+                        const isActionUsed = usedActions.has(action.id);
+                        const aResult = actionResults[action.id];
+                        const isExec = aResult?.status === 'loading';
+                        const isComp = aResult?.status === 'complete';
+                        const isDone = isComp || (isActionUsed && (action.type === 'reply' || action.type === 'greeting'));
+                        const isTopPick = actionIdx === 0 && !isDone;
+                        const isHoveredHere = hoveredAction === `active-${action.id}`;
+                        const showBody = isTopPick || isHoveredHere || isDone || isExec;
+                        return (
+                          <div key={action.id}
+                            onMouseEnter={() => !isDone && !isExec && setHoveredAction(`active-${action.id}`)}
+                            onMouseLeave={() => setHoveredAction(null)}
+                            style={{
+                            borderRadius: theme.radii.md, overflow: 'hidden',
+                            border: `1px solid ${isDone ? `${theme.colors.success}30` : isExec ? `${theme.colors.blue}30` : isTopPick ? `${typeConf.color}35` : isHoveredHere ? `${typeConf.color}30` : colors.border}`,
+                            backgroundColor: isDone ? `${theme.colors.success}04` : isExec ? `${theme.colors.blue}04` : isTopPick ? `${typeConf.color}04` : isHoveredHere ? `${typeConf.color}03` : colors.surface,
+                            transition: 'border-color 0.2s ease, background-color 0.2s ease',
+                          }}>
+                            {/* NBA header */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px' }}>
+                              <div style={{
+                                width: '22px', height: '22px', borderRadius: theme.radii.xs,
+                                backgroundColor: isDone ? theme.colors.successMuted : isExec ? `${theme.colors.blue}15` : typeConf.bg,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                              }}>
+                                {isDone ? <Check size={11} color={theme.colors.success} />
+                                  : isExec ? <Cpu size={11} color={theme.colors.blue} style={{ animation: 'spin 1s linear infinite' }} />
+                                  : <TypeIcon size={11} color={typeConf.color} />}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+                                  <span style={{
+                                    fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                                    color: typeConf.color, padding: '1px 5px', borderRadius: theme.radii.full, backgroundColor: typeConf.bg,
+                                  }}>{typeConf.label}</span>
+                                  <span style={{ fontSize: '10px', fontWeight: 600, color: prioConf.color }}>● {prioConf.label}</span>
+                                </div>
+                                <div style={{ fontSize: '12px', lineHeight: 1.45, color: colors.text, marginTop: '2px' }}>
+                                  {action.label}
+                                </div>
+                              </div>
+                            </div>
+                            {/* Expandable body: auto-expanded for top pick, hover for rest */}
+                            <div style={{
+                              maxHeight: showBody ? '400px' : '0px',
+                              opacity: showBody ? 1 : 0,
+                              overflow: 'hidden',
+                              transition: 'max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease',
+                            }}>
+                            {/* Pure reply (no tool call) */}
+                            {!isDone && !isExec && action.immediateReply && !action.toolCall && (
+                              <div style={{ padding: '0 10px 10px' }}>
+                                <p style={{
+                                  margin: 0, fontSize: '12.5px', lineHeight: 1.6, color: colors.text,
+                                  whiteSpace: 'pre-wrap',
+                                }}>{action.immediateReply}</p>
+                                <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                                  {isVoice ? (
+                                    <>
+                                      <button
+                                        onClick={() => navigator.clipboard?.writeText(action.immediateReply || '')}
+                                        style={{
+                                          padding: '7px 12px', borderRadius: theme.radii.md,
+                                          border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                          color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                        }}
+                                      >
+                                        <Copy size={12} /> Copy
+                                      </button>
+                                      <button
+                                        onClick={() => handleUseAction(action)}
+                                        style={{
+                                          flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                          border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                          fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                        }}
+                                      >
+                                        <Check size={12} /> Mark as Communicated
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => handleUseAction(action)}
+                                        style={{
+                                          flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                          border: 'none', backgroundColor: theme.colors.blue, color: '#fff',
+                                          fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                        }}
+                                      >
+                                        <Send size={12} /> Send
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setComposeText(action.immediateReply);
+                                          setPendingDraftId(action.id);
+                                        }}
+                                        style={{
+                                          flex: 1, padding: '7px 12px', borderRadius: theme.radii.md,
+                                          border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                                          color: colors.text, fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                        }}
+                                      >
+                                        <Edit3 size={12} /> Edit
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {/* Action with reply text + tool call */}
+                            {!isDone && !isExec && action.toolCall && action.immediateReply && (
+                              <div style={{ padding: '0 10px 10px' }}>
+                                <p style={{
+                                  margin: '0 0 8px', fontSize: '12.5px', lineHeight: 1.6, color: colors.text,
+                                  whiteSpace: 'pre-wrap',
+                                }}>{action.immediateReply}</p>
+                                <button
+                                  onClick={() => handleUseAction(action)}
+                                  style={{
+                                    width: '100%', padding: '7px 12px', borderRadius: theme.radii.md,
+                                    border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                    fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                  }}
+                                >
+                                  <Zap size={12} /> {isVoice ? 'Execute & Communicate' : 'Send & Execute'}
+                                </button>
+                              </div>
+                            )}
+                            {/* Tool-only action (no reply text) */}
+                            {!isDone && !isExec && action.toolCall && !action.immediateReply && (
+                              <div style={{ padding: '0 10px 10px' }}>
+                                <button
+                                  onClick={() => handleUseAction(action)}
+                                  style={{
+                                    width: '100%', padding: '7px 12px', borderRadius: theme.radii.md,
+                                    border: 'none', backgroundColor: theme.colors.success, color: '#fff',
+                                    fontSize: '12px', fontWeight: 600, fontFamily: theme.fonts.body,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                                  }}
+                                >
+                                  <Zap size={12} /> Execute
+                                </button>
+                              </div>
+                            )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Spacer to allow scrolling latest message to the top */}
         <div style={{ minHeight: '70vh' }} />
       </div>
@@ -4377,36 +5018,148 @@ function RightPanel({ conversation, autopilot, setAutopilot, liveMessages, setLi
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [activeTab, setActiveTab] = useState('nextiq');
+  const [teamChatOpen, setTeamChatOpen] = useState(false);
+  const [teamChatMsg, setTeamChatMsg] = useState('');
 
   useEffect(() => {
     if (nextIQQuery) setActiveTab('nextiq');
   }, [nextIQQuery]);
 
+  const teamChatMessages = [
+    { id: 1, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
+      ? "Emily Davis called in — her account may be inactive. Check if domain changed during Brightwave rebrand."
+      : "Brad Pitt is a key account. Handle the billing issue with care — renewal is in Aug.", time: '2 min ago' },
+    { id: 2, from: 'you', name: 'You', initials: 'AR', text: conversation?.channel === 'phone'
+      ? "Confirmed. Old domain brightwave.io, new is brightwavecorp.io. Reactivating now."
+      : "Got it. Found the duplicate charge — processing refund now.", time: '1 min ago' },
+    { id: 3, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
+      ? "Good catch. Also mention the Spring promo — she's a good upsell candidate."
+      : "Good. Keep me posted on the outcome.", time: 'Just now' },
+  ];
+
   return (
     <div style={{ display: 'flex', height: '100%', flex: 55, minWidth: 0 }}>
-      {/* Panel Content */}
+      {/* Panel Content + Team Chat */}
       <div style={{
         flex: 1, minWidth: 0, borderLeft: `1px solid ${colors.border}`,
         backgroundColor: colors.background, display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
       }}>
-        {activeTab === 'nextiq' && (
-          <NextIQPanel
-            conversation={conversation}
-            autopilot={autopilot}
-            setAutopilot={setAutopilot}
-            liveMessages={liveMessages}
-            setLiveMessages={setLiveMessages}
-            setComposeText={setComposeText}
-            setPendingDraftId={setPendingDraftId}
-            nextIQQuery={nextIQQuery}
-            clearNextIQQuery={clearNextIQQuery}
-          />
-        )}
-        {activeTab === 'customer' && <Customer360Panel conversation={conversation} />}
-        {activeTab === 'notes' && <InternalNotesPanel />}
-        {activeTab === 'meetings' && <MeetingsPanel />}
-        {activeTab === 'tickets' && <TicketsPanel />}
+        {/* Tab Content */}
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {activeTab === 'nextiq' && (
+            <NextIQPanel
+              conversation={conversation}
+              autopilot={autopilot}
+              setAutopilot={setAutopilot}
+              liveMessages={liveMessages}
+              setLiveMessages={setLiveMessages}
+              setComposeText={setComposeText}
+              setPendingDraftId={setPendingDraftId}
+              nextIQQuery={nextIQQuery}
+              clearNextIQQuery={clearNextIQQuery}
+            />
+          )}
+          {activeTab === 'customer' && <Customer360Panel conversation={conversation} />}
+          {activeTab === 'notes' && <InternalNotesPanel />}
+          {activeTab === 'meetings' && <MeetingsPanel />}
+          {activeTab === 'tickets' && <TicketsPanel />}
+        </div>
+
+        {/* Team Chat Drawer */}
+        <div style={{
+          borderTop: `1px solid ${colors.border}`,
+          backgroundColor: colors.surface,
+          transition: 'max-height 0.3s ease, min-height 0.3s ease',
+          maxHeight: teamChatOpen ? '45%' : '36px',
+          minHeight: '36px',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          {/* Collapsed header bar */}
+          <div
+            onClick={() => setTeamChatOpen(!teamChatOpen)}
+            style={{
+              padding: '8px 14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              borderBottom: teamChatOpen ? `1px solid ${colors.border}` : 'none',
+              backgroundColor: teamChatOpen ? colors.surface : 'transparent',
+              flexShrink: 0,
+            }}
+          >
+            <MessageSquare size={13} color={theme.colors.blue} />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>Team</span>
+            <span style={{
+              fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: theme.radii.full,
+              backgroundColor: theme.colors.blue, color: '#fff', minWidth: '14px', textAlign: 'center',
+            }}>2</span>
+            <ChevronDown
+              size={14} color={colors.textSecondary}
+              style={{
+                marginLeft: 'auto', transition: 'transform 0.2s ease',
+                transform: teamChatOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+              }}
+            />
+          </div>
+
+          {/* Expanded chat content */}
+          {teamChatOpen && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Messages */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px' }}>
+                {teamChatMessages.map(msg => (
+                  <div key={msg.id} style={{ marginBottom: '10px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <div style={{
+                      width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+                      background: msg.from === 'you'
+                        ? `linear-gradient(135deg, ${theme.colors.blue}, ${theme.colors.purple})`
+                        : `linear-gradient(135deg, ${theme.colors.success}, #0D9488)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '9px', fontWeight: 700, color: '#fff',
+                    }}>
+                      {msg.initials}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: colors.text }}>{msg.name}</span>
+                        <span style={{ fontSize: '10px', color: colors.textTertiary }}>{msg.time}</span>
+                      </div>
+                      <p style={{
+                        margin: '2px 0 0', fontSize: '12px', lineHeight: 1.5, color: colors.textSecondary,
+                      }}>
+                        {msg.text}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Input */}
+              <div style={{
+                padding: '8px 12px', borderTop: `1px solid ${colors.border}`,
+                display: 'flex', gap: '6px', alignItems: 'center',
+              }}>
+                <input
+                  type="text"
+                  value={teamChatMsg}
+                  onChange={(e) => setTeamChatMsg(e.target.value)}
+                  placeholder="Message team..."
+                  style={{
+                    flex: 1, border: `1px solid ${colors.border}`, borderRadius: theme.radii.md,
+                    padding: '6px 10px', fontSize: '12px', fontFamily: theme.fonts.body,
+                    color: colors.text, backgroundColor: colors.inputBackground, outline: 'none',
+                  }}
+                />
+                <button style={{
+                  width: '28px', height: '28px', borderRadius: theme.radii.sm,
+                  border: 'none', backgroundColor: theme.colors.blue, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Send size={12} color="#fff" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Vertical Tab Strip */}

@@ -701,6 +701,88 @@
 </div>
 
 <!-- ============================================================ -->
+<!-- SECTION: VOICE CHANNEL ADAPTATION                              -->
+<!-- ============================================================ -->
+<h2 id="voice-channel" style="font-size:22px;font-weight:800;color:#02122C;margin-top:48px;padding-bottom:10px;border-bottom:2px solid #e2e8f0;">
+  9. Voice Channel Adaptation
+</h2>
+
+<p style="font-size:14px;color:#374151;line-height:1.65;margin-bottom:20px;">
+  NextIQ is an omnichannel assistant. In voice channels, the AI intelligence (intent classification, KB, NBAs) remains identical &mdash; only the <strong>UI interaction layer</strong> changes. The core principle: <em>NextIQ assists the agent's brain, not the agent's keyboard.</em>
+</p>
+
+<h3 style="font-size:16px;font-weight:700;color:#02122C;margin-top:28px;margin-bottom:12px;">Chat vs. Voice &mdash; Feature Comparison</h3>
+
+<table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+  <thead>
+    <tr style="background-color:#F8FAFC;">
+      <th style="padding:10px 14px;text-align:left;font-weight:700;color:#02122C;border-bottom:2px solid #e2e8f0;width:25%;">UI Element</th>
+      <th style="padding:10px 14px;text-align:left;font-weight:700;color:#02122C;border-bottom:2px solid #e2e8f0;width:37%;">Chat / SMS / Email</th>
+      <th style="padding:10px 14px;text-align:left;font-weight:700;color:#02122C;border-bottom:2px solid #e2e8f0;width:38%;">Voice (Phone)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">KB Response</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Displays as &ldquo;Knowledge Base Response&rdquo; with <strong>Send</strong> and <strong>Edit</strong> buttons. Agent sends directly to customer.</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Displays as <strong>&ldquo;Suggested Talk Track&rdquo;</strong> with a <strong>Copy</strong> button and <strong>Mark as Communicated</strong>. Agent reads it verbally.</td>
+    </tr>
+    <tr style="background-color:#FAFAFA;">
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">NBA (Reply/Greeting)</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;"><strong>Send</strong> and <strong>Edit</strong> buttons. Message is sent to customer chat thread.</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;"><strong>Copy</strong> and <strong>Mark as Communicated</strong>. Agent reads the talk track aloud; clicking &ldquo;Mark as Communicated&rdquo; advances the flow.</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">NBA (Action/Tool)</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;"><strong>Execute</strong> button. Tool runs; post-tool response is sent to customer.</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;"><strong>Execute</strong> button (unchanged &mdash; tool calls are channel-agnostic). Post-tool response presented as a talk track with <strong>Mark as Communicated</strong>.</td>
+    </tr>
+    <tr style="background-color:#FAFAFA;">
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">Autopilot Mode</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Auto-executes actions and auto-sends customer-facing messages after countdown timer.</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Auto-executes backend actions. <strong>Pauses before customer-facing messages</strong> with &ldquo;Say this to the customer&rdquo; prompt. Agent clicks <strong>&ldquo;Done &mdash; Communicated&rdquo;</strong> to proceed.</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">Compose Bar</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">&ldquo;Write a message...&rdquo; text input with Send button, attachment icons.</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Replaced with <strong>Call Notes</strong> input (&ldquo;Add call notes...&rdquo;). No Send button. Includes live call status bar with duration, mute, and hold controls.</td>
+    </tr>
+    <tr style="background-color:#FAFAFA;">
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;font-weight:600;">Conversation Thread</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;">Chat bubbles (blue for agent, gray for customer).</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#374151;"><strong>Transcript-style view</strong> with left-border accent lines. Customer messages labeled &ldquo;transcribed&rdquo;; agent messages labeled &ldquo;verbal&rdquo;.</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 14px;font-weight:600;">Channel Badge</td>
+      <td style="padding:10px 14px;color:#374151;">Green &ldquo;Live Chat&rdquo; badge with status dot.</td>
+      <td style="padding:10px 14px;color:#374151;">Amber <strong>&ldquo;Voice Call&rdquo;</strong> badge with live call duration timer. NextIQ panel shows &ldquo;Voice mode &mdash; suggestions are for verbal reference&rdquo; banner.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 style="font-size:16px;font-weight:700;color:#02122C;margin-top:28px;margin-bottom:12px;">Team Chat &mdash; Persistent Bottom Drawer</h3>
+
+<p style="font-size:14px;color:#374151;line-height:1.65;margin-bottom:12px;">
+  A collapsible <strong>Team Chat</strong> drawer sits at the bottom of the NextIQ right panel, independent of which tab (Intelligence, Customer 360, Notes, etc.) is active. This enables real-time agent-to-supervisor collaboration without leaving the AI assistance view.
+</p>
+
+<ul style="font-size:14px;color:#374151;line-height:1.8;padding-left:20px;">
+  <li><strong>Collapsed:</strong> Thin 36px bar showing &ldquo;Team &mdash; 2 unread&rdquo; with an expand chevron.</li>
+  <li><strong>Expanded:</strong> Slides up to ~40% of the right panel. Shows a threaded chat with supervisor context (e.g., &ldquo;Emily Davis called in &mdash; check if domain changed&rdquo;) and an input bar.</li>
+  <li><strong>Distinction from Internal Notes:</strong> Internal Notes are async, WorkItem-scoped annotations. Team Chat is real-time, people-scoped messaging.</li>
+</ul>
+
+<div style="margin-top:16px;padding:12px 16px;background-color:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <span style="font-size:16px;">&#9432;</span>
+    <strong style="font-size:13px;color:#1E40AF;">Implementation Note</strong>
+  </div>
+  <div style="font-size:13px;color:#1E40AF;line-height:1.6;">
+    Channel detection is driven by the <code>channel</code> property on each conversation/engagement (e.g., <code>'phone'</code>, <code>'chat'</code>, <code>'email'</code>, <code>'sms'</code>). The intelligence engine (intent classification, KB retrieval, NBA generation) is completely channel-agnostic &mdash; only the UI rendering layer adapts.
+  </div>
+</div>
+
+<!-- ============================================================ -->
 <!-- FOOTER                                                        -->
 <!-- ============================================================ -->
 <div style="margin-top:48px;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;">

@@ -133,7 +133,7 @@ export default function HomePage({ setActiveNav, navigateToInbox }) {
             <div
               key={conv.id}
               onClick={() => {
-                const inboxIdMap = { 'Brad Pitt': 1, 'Michael Torres': 2, 'Jennifer Walsh': 3, 'David Kim': 4, 'Tom Bradley': 6, 'Amanda Foster': 7 };
+                const inboxIdMap = { 'Brad Pitt': 1, 'Michael Torres': 2, 'Emily Davis': 3, 'David Kim': 4, 'Tom Bradley': 6, 'Amanda Foster': 7 };
                 const inboxId = inboxIdMap[conv.name];
                 if (navigateToInbox && inboxId) { navigateToInbox(inboxId); } else { setActiveNav('inbox'); }
               }}
