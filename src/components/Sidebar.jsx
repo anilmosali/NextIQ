@@ -29,7 +29,7 @@ const labels = {
   tickets: 'Tickets',
   analytics: 'Analytics',
   integrations: 'Integrations',
-  nextiq: 'NextIQ',
+  nextiq: 'Copilot',
 };
 
 export default function Sidebar({ activeNav, setActiveNav, onOpenHelp }) {

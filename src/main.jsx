@@ -119,6 +119,26 @@ globalStyles.textContent = `
     75% { background: conic-gradient(from 0deg, rgba(0,98,184,0.8) 0%, rgba(0,98,184,0.5) 75%, transparent 75%); }
     100% { background: conic-gradient(from 0deg, rgba(0,98,184,0.8) 0%, rgba(0,98,184,0.5) 100%, transparent 100%); }
   }
+
+  @keyframes coachTabPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+  }
+
+  @keyframes coachTabPulseCritical {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+  }
+
+  @keyframes toastSlideIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes toastSlideOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(12px) scale(0.97); }
+  }
 `;
 document.head.appendChild(globalStyles);
 

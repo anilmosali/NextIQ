@@ -248,6 +248,8 @@ function classifyIntent(conversation, customerContext) {
   if (isRateLimitAction && wantsEnterprise) return { mode: 'nba', intent: 'rate_limit_fix_and_upgrade', reason: 'Customer requesting rate limit fix + Enterprise upgrade — action-focused', confidence: 92 };
   if (isRateLimitAction) return { mode: 'nba', intent: 'rate_limit_action_request', reason: 'Customer requesting specific rate limit action — NBA-focused', confidence: 88 };
   if (wantsSchedule) return { mode: 'nba', intent: 'schedule_enterprise_call', reason: 'Customer confirming schedule for Enterprise consultation — action-focused', confidence: 88 };
+  const isActionRequest = /(can you check|check what|look up|pull up|look into|run a check|check.*for me|check.*our|check.*my|whether we qualify)/.test(text);
+  if (isRateLimit && isActionRequest) return { mode: 'nba', intent: 'api_rate_limit_issue', reason: 'Customer requesting a specific check/action on rate limits — NBA-focused', confidence: 90 };
   if (isRateLimit) return { mode: 'both', intent: 'api_rate_limit_issue', reason: 'API rate limit / integration error detected — KB + diagnostic actions available', confidence: 90 };
 
   if (isPasswordIssue) return { mode: 'both', intent: 'password_reset_issue', reason: 'Password/login issue detected — KB troubleshooting + diagnostic actions available', confidence: 88 };
@@ -415,6 +417,177 @@ function getKBResponse(conversation) {
   };
 }
 
+// ─── Coaching Rules Engine ───────────────────────────────────────────────────
+const COACHING_RULES = [
+  {
+    id: 'cr-greeting',
+    name: 'Greeting & Empathy',
+    category: 'greeting',
+    severity: 'warning',
+    trigger: 'on_agent_message',
+    evaluate: ({ messages }) => {
+      const agentMsgs = messages.filter(m => m.from === 'agent');
+      if (agentMsgs.length === 0) return null;
+      const first = agentMsgs[0].text.toLowerCase();
+      const hasGreeting = /(hi|hello|hey|good morning|good afternoon|good evening|thank you for calling|thanks for calling|welcome)/.test(first);
+      if (!hasGreeting) return { fired: true, detail: 'Agent did not greet the customer in their first response.' };
+      return { fired: false };
+    },
+    nudgeText: 'Remember to greet the customer and acknowledge their concern before diving into troubleshooting.',
+    escalate: false,
+    deduction: 10,
+  },
+  {
+    id: 'cr-identity-verification',
+    name: 'Identity Verification',
+    category: 'verification',
+    severity: 'critical',
+    trigger: 'on_tool_execution',
+    evaluate: ({ messages, usedActions }) => {
+      const accountModifyingPatterns = ['diagnose', 'reactivate', 'reset', 'modify', 'refund', 'revert', 'account'];
+      const hasAccountAction = usedActions.some(a => accountModifyingPatterns.some(p => a.toLowerCase().includes(p)));
+      if (!hasAccountAction) return null;
+      const agentTexts = messages.filter(m => m.from === 'agent').map(m => m.text.toLowerCase()).join(' ');
+      const customerTexts = messages.filter(m => m.from === 'customer').map(m => m.text.toLowerCase()).join(' ');
+      const askedForVerification = /(email|verify|confirm.*identity|confirm.*account|what.*email|could you confirm)/.test(agentTexts);
+      const customerProvided = /(@|\.com|\.io|\.org|\.net)/.test(customerTexts);
+      if (!askedForVerification || !customerProvided) return { fired: true, detail: 'Account-modifying action executed without prior identity verification.' };
+      return { fired: false };
+    },
+    nudgeText: 'STOP: Customer identity has not been verified. Confirm their identity before making account changes.',
+    escalate: true,
+    escalateMessage: 'Agent attempted account modification without identity verification.',
+    deduction: 20,
+  },
+  {
+    id: 'cr-sensitive-data',
+    name: 'Sensitive Data Compliance',
+    category: 'compliance',
+    severity: 'critical',
+    trigger: 'on_agent_message',
+    evaluate: ({ messages }) => {
+      const agentMsgs = messages.filter(m => m.from === 'agent');
+      const jargonPatterns = /(nba-|kb-|tmpl-|rule-|tool_call_id|action_id|internal.*error.*code|debug.*trace|stack.*trace)/i;
+      for (const msg of agentMsgs) {
+        if (jargonPatterns.test(msg.text)) return { fired: true, detail: `Agent message contains internal system information: "${msg.text.slice(0, 60)}..."` };
+      }
+      return { fired: false };
+    },
+    nudgeText: 'Your message may contain internal system information. Remove tool names, IDs, or debug data before sending.',
+    escalate: true,
+    escalateMessage: 'Agent shared internal system information with customer.',
+    deduction: 20,
+  },
+  {
+    id: 'cr-upsell',
+    name: 'Upsell on Qualifying Accounts',
+    category: 'upsell',
+    severity: 'info',
+    trigger: 'on_conversation_close',
+    evaluate: ({ messages, customerCtx }) => {
+      const isEligible = customerCtx?.accountType === 'Business Pro' || customerCtx?.accountType === 'Enterprise';
+      if (!isEligible) return null;
+      const agentTexts = messages.filter(m => m.from === 'agent').map(m => m.text.toLowerCase()).join(' ');
+      const mentionedPromo = /(promo|promotion|upgrade|spring|discount|offer|deal|special)/.test(agentTexts);
+      if (mentionedPromo) return { fired: false };
+      const hasResolution = messages.filter(m => m.from === 'agent').length >= 3;
+      if (!hasResolution) return null;
+      return { fired: true, detail: 'Customer qualifies for an upgrade but no promotion was mentioned.' };
+    },
+    nudgeText: 'This customer qualifies for an upgrade. Consider mentioning the current promotion before closing.',
+    escalate: false,
+    deduction: 5,
+  },
+  {
+    id: 'cr-vip-churn',
+    name: 'VIP Churn Risk Escalation',
+    category: 'compliance',
+    severity: 'critical',
+    trigger: 'on_agent_message',
+    evaluate: ({ messages, customerCtx }) => {
+      const isVIP = customerCtx?.tags?.some(t => t.label === 'VIP');
+      const isAtRisk = customerCtx?.churnRisk === 'At Risk';
+      if (!isVIP || !isAtRisk) return null;
+      const agentTexts = messages.filter(m => m.from === 'agent').map(m => m.text.toLowerCase()).join(' ');
+      const acknowledged = /(important|valued|priority|understand.*frustration|we value|loyal|retention|churn|risk|appreciate.*business|long.*time)/.test(agentTexts);
+      if (acknowledged) return { fired: false };
+      const agentMsgCount = messages.filter(m => m.from === 'agent').length;
+      if (agentMsgCount < 2) return null;
+      return { fired: true, detail: 'VIP customer flagged as At Risk — agent has not acknowledged churn risk factors.' };
+    },
+    nudgeText: 'This is a VIP customer flagged as At Risk for churn. Acknowledge their concerns and consider escalating.',
+    escalate: true,
+    escalateMessage: 'VIP customer at churn risk — agent has not acknowledged risk factors.',
+    deduction: 20,
+  },
+  {
+    id: 'cr-tone',
+    name: 'Tone Monitoring',
+    category: 'tone',
+    severity: 'warning',
+    trigger: 'on_sentiment_change',
+    evaluate: ({ messages }) => {
+      const customerMsgs = messages.filter(m => m.from === 'customer');
+      const hasNegative = customerMsgs.some(m => /(frustrated|angry|ridiculous|terrible|unacceptable|worst|not working|having issues|problem|issue|broken)/.test(m.text.toLowerCase()));
+      if (!hasNegative) return null;
+      const agentTexts = messages.filter(m => m.from === 'agent').map(m => m.text.toLowerCase()).join(' ');
+      const hasEmpathy = /(sorry|understand|frustrat|apologize|appreciate.*patience|i hear you|completely understand|must be)/.test(agentTexts);
+      if (hasEmpathy) return { fired: false };
+      const agentAfterNegative = (() => {
+        const negIdx = messages.findIndex(m => m.from === 'customer' && /(frustrated|angry|ridiculous|terrible|unacceptable|worst)/.test(m.text.toLowerCase()));
+        if (negIdx < 0) return false;
+        return messages.slice(negIdx + 1).some(m => m.from === 'agent');
+      })();
+      if (!agentAfterNegative) return null;
+      return { fired: true, detail: 'Customer expressed frustration but agent has not used empathetic language.' };
+    },
+    nudgeText: 'Customer sentiment is negative. Use empathetic language — acknowledge their frustration before proceeding.',
+    escalate: false,
+    deduction: 10,
+  },
+];
+
+function evaluateCoachingRules({ messages, customerCtx, usedActions, actionResults }) {
+  const activeNudges = [];
+  const firedRules = [];
+  const escalations = [];
+  let score = 100;
+
+  const usedActionIds = usedActions instanceof Set ? [...usedActions] : [];
+  const completedToolNames = actionResults
+    ? Object.values(actionResults).filter(r => r.status === 'complete').map(r => r.toolName || '')
+    : [];
+  const allUsedContext = [...usedActionIds, ...completedToolNames];
+
+  for (const rule of COACHING_RULES) {
+    const result = rule.evaluate({ messages, customerCtx, usedActions: allUsedContext });
+    if (!result || !result.fired) continue;
+
+    firedRules.push({ ...rule, detail: result.detail });
+    score -= rule.deduction;
+
+    activeNudges.push({
+      ruleId: rule.id,
+      ruleName: rule.name,
+      severity: rule.severity,
+      category: rule.category,
+      nudgeText: rule.nudgeText,
+      detail: result.detail,
+    });
+
+    if (rule.escalate) {
+      escalations.push({
+        ruleId: rule.id,
+        ruleName: rule.name,
+        message: rule.escalateMessage || result.detail,
+        severity: rule.severity,
+      });
+    }
+  }
+
+  return { score: Math.max(0, score), activeNudges, firedRules, escalations };
+}
+
 function getNextBestActions(conversation, customerContext) {
   const lastCustomerMsg = [...conversation].reverse().find(m => m.from === 'customer');
   const actions = [];
@@ -422,9 +595,10 @@ function getNextBestActions(conversation, customerContext) {
   const firstName = customerContext?.name?.split(' ')[0] || 'there';
 
   const greetingMatch = lastCustomerMsg && /^(hi|hello|hey|good morning|good afternoon|good evening)[\s!.,]/i.test(lastCustomerMsg.text);
-  const isGreeting = greetingMatch && lastCustomerMsg.text.trim().split(/\s+/).length <= 12;
+  const isShortGreeting = greetingMatch && lastCustomerMsg.text.trim().split(/\s+/).length <= 12;
+  const isGreetingWithContext = greetingMatch && !isShortGreeting;
 
-  if (!lastCustomerMsg || isGreeting) {
+  if (!lastCustomerMsg || isShortGreeting) {
     actions.push(
       { id: 'nba-greet-1', type: 'greeting', icon: 'MessageSquare', label: `Greet & ask how to help`, priority: 'high', immediateReply: `Of course, ${firstName}. Happy to help directly. What can I look into for you?`, toolCall: null, postToolResponse: null },
       { id: 'nba-greet-2', type: 'greeting', icon: 'MessageSquare', label: `Greet & offer assistance`, priority: 'high', immediateReply: `Hello ${firstName}! Thanks for reaching out. What can I assist you with?`, toolCall: null, postToolResponse: null },
@@ -465,6 +639,16 @@ function getNextBestActions(conversation, customerContext) {
   }
 
   if (/(charge|bill|invoice|refund|payment)/.test(text)) {
+    if (isGreetingWithContext) {
+      actions.push(
+        { id: 'nba-greet-billing-1', type: 'greeting', icon: 'MessageSquare', label: `Acknowledge & ask for billing details`, priority: 'high',
+          immediateReply: `Hi ${firstName}! Absolutely, I'm here to help. Could you share a few more details about the billing concern so I can look into it right away?`,
+          toolCall: null, postToolResponse: null },
+        { id: 'nba-greet-billing-2', type: 'greeting', icon: 'MessageSquare', label: `Greet & pull up account`, priority: 'high',
+          immediateReply: `Hello ${firstName}! Thank you for reaching out directly. Let me pull up your account right away — what specifically are you seeing on the bill?`,
+          toolCall: null, postToolResponse: null },
+      );
+    }
     actions.push(
       { id: 'nba-respond-check-billing', type: 'action', icon: 'Zap', label: 'Respond & Check Feb Bill for Double Charges', priority: 'high',
         immediateReply: `Sure ${firstName}, give me a second while I review your February billing.`,
@@ -837,7 +1021,7 @@ function getNextBestActions(conversation, customerContext) {
   return actions;
 }
 
-function getPostActionNBAs(completedActions, customerContext) {
+function getPostActionNBAs(completedActions, customerContext, latestCustomerText) {
   const firstName = customerContext?.name?.split(' ')[0] || 'there';
   const actions = [];
 
@@ -2435,7 +2619,7 @@ function AutopilotBorderOverlay({ progress, borderRadius = '8px' }) {
   const deg = (pct / 100) * 360;
   return (
     <div style={{
-      position: 'absolute', inset: '-3px', borderRadius, zIndex: 2, pointerEvents: 'none',
+      position: 'absolute', inset: 0, borderRadius, zIndex: 2, pointerEvents: 'none',
       background: `conic-gradient(from 0deg, rgba(0,98,184,0.9) 0deg, rgba(59,130,246,0.65) ${deg * 0.7}deg, rgba(0,98,184,0.9) ${deg}deg, transparent ${deg}deg)`,
       WebkitMask: `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
       WebkitMaskComposite: 'xor',
@@ -2451,6 +2635,25 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
   const colors = theme.themes[themeMode];
   const isVoice = conversation?.channel === 'phone';
   const [query, setQuery] = useState('');
+  const [subTab, setSubTab] = useState('assist');
+  const [teamChatMsg, setTeamChatMsg] = useState('');
+  const [dismissedNudges, setDismissedNudges] = useState(new Set());
+  const [toastNudge, setToastNudge] = useState(null);
+  const [toastExiting, setToastExiting] = useState(false);
+  const shownToastIds = useRef(new Set());
+  const toastTimerRef = useRef(null);
+  const [teamChatMessages, setTeamChatMessages] = useState([
+    { id: 1, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
+      ? "Emily Davis called in — her account may be inactive. Check if domain changed during Brightwave rebrand."
+      : "Brad Pitt is a key account. Handle the billing issue with care — renewal is in Aug.", time: '2 min ago' },
+    { id: 2, from: 'you', name: 'You', initials: 'AR', text: conversation?.channel === 'phone'
+      ? "Confirmed. Old domain brightwave.io, new is brightwavecorp.io. Reactivating now."
+      : "Got it. Found the duplicate charge — processing refund now.", time: '1 min ago' },
+    { id: 3, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
+      ? "Good catch. Also mention the Spring promo — she's a good upsell candidate."
+      : "Good. Keep me posted on the outcome.", time: 'Just now' },
+  ]);
+  const teamChatEndRef = useRef(null);
 
   const [hoveredAction, setHoveredAction] = useState(null);
   const hoverTimeoutRef = useRef(null);
@@ -2484,6 +2687,10 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
       setCountdownSent(false);
       setCountdown(COUNTDOWN_TOTAL);
       lastAutopilotTrigger.current = null;
+      escalationSentRef.current = new Set();
+      setCoachingExpanded(false);
+      setSubTab('assist');
+      setDismissedNudges(new Set());
       if (countdownRef.current) clearInterval(countdownRef.current);
     }
   }, [conversation?.id]);
@@ -2504,6 +2711,48 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     [actionResults]
   );
   const hasActionContext = completedActions.length > 0;
+
+  const coachingResult = useMemo(() =>
+    evaluateCoachingRules({ messages: liveMessages, customerCtx, usedActions, actionResults }),
+    [liveMessages, customerCtx, usedActions, actionResults]
+  );
+
+  const [coachingExpanded, setCoachingExpanded] = useState(false);
+  const escalationSentRef = useRef(new Set());
+
+  useEffect(() => {
+    if (coachingResult.escalations.length > 0) {
+      coachingResult.escalations.forEach(esc => {
+        if (!escalationSentRef.current.has(esc.ruleId)) {
+          escalationSentRef.current.add(esc.ruleId);
+        }
+      });
+    }
+  }, [coachingResult.escalations]);
+
+  useEffect(() => {
+    if (subTab === 'coach') return;
+    const undismissed = coachingResult.activeNudges.filter(
+      n => !dismissedNudges.has(n.ruleId) && !shownToastIds.current.has(n.ruleId)
+    );
+    if (undismissed.length === 0) return;
+    const nudge = undismissed[0];
+    shownToastIds.current.add(nudge.ruleId);
+    setToastExiting(false);
+    setToastNudge(nudge);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
+      setToastExiting(true);
+      setTimeout(() => { setToastNudge(null); setToastExiting(false); }, 300);
+    }, 10000);
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
+  }, [coachingResult.activeNudges.length, subTab, dismissedNudges]);
+
+  const dismissToast = () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastExiting(true);
+    setTimeout(() => { setToastNudge(null); setToastExiting(false); }, 300);
+  };
 
   const classification = hasActionContext
     ? { mode: 'nba', intent: 'action_follow_up', reason: 'Pending action results — generating follow-up actions', confidence: 95 }
@@ -2577,11 +2826,14 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
   }, [countdownActive, countdownSent]);
 
   const mockCustomerReplies = [
+    { trigger: 'nba-greet-billing-1', text: "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount — $2,400 each time.", sentiment: 'Negative' },
+    { trigger: 'nba-greet-billing-2', text: "We were charged twice for our February invoice. Can you look into it? The amount is $2,400 and it appeared twice on the 15th.", sentiment: 'Negative' },
     { trigger: 'kb-billing-duplicate', text: "That's great to hear! Can you send me the refund confirmation and reference number via email?", sentiment: 'Positive' },
     { trigger: 'nba-respond-check-billing', text: "Okay, thank you! Take your time.", sentiment: 'Neutral' },
     { trigger: 'nba-confirm-and-refund', text: "That's great to hear! Thank you for looking into this so quickly. Can you send me the refund confirmation via email?", sentiment: 'Positive' },
     { trigger: 'nba-reply-duplicate-found', text: "Yes, please go ahead and initiate the refund!", sentiment: 'Positive' },
     { trigger: 'nba-confirm-refund-done', text: "That's wonderful, thank you so much! I'll keep an eye out for the confirmation email. You've been incredibly helpful!", sentiment: 'Positive' },
+    { trigger: 'nba-revert-refund', text: "Thank you for processing that so quickly! Can you send me the refund reference number via email?", sentiment: 'Positive' },
     { trigger: 'nba-post-account-reply', text: "Yes, specifically about the duplicate charges on our February invoice. We were billed twice for the same amount.", sentiment: 'Negative' },
     { trigger: 'nba-post-diagnostic-reply', text: "Yes, please set up monitoring alerts. That would be really helpful so we know right away if there's another issue.", sentiment: 'Positive' },
     { trigger: 'nba-post-action-gen', text: "Okay, go ahead — I'm listening.", sentiment: 'Neutral' },
@@ -2623,6 +2875,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     // Emily Davis — Password reset flow
     { trigger: 'nba-greet-verify', text: "Sure, it's emily.davis@brightwave.io", sentiment: 'Neutral' },
     { trigger: 'nba-post-diagnose-share', text: "Oh, that's our old domain! We rebranded last year to Brightwave Corp. Yes, please go ahead and reactivate it!", sentiment: 'Neutral' },
+    { trigger: 'nba-reactivate-account', text: "Okay, great — please go ahead and reactivate it! I'll watch for the password reset email.", sentiment: 'Positive' },
     { trigger: 'nba-post-reactivate-confirm', text: "Got the email already! That was fast. And yes, I'd love to hear about the upgrade offer — send me the details! You've been incredibly helpful.", sentiment: 'Positive' },
     { trigger: 'nba-post-reactivate-close', text: "Perfect, I see the reset email in my inbox! Thanks so much for your help — this was way easier than I expected!", sentiment: 'Positive' },
     { trigger: 'nba-password-generic', text: "I tried that already and it didn't work — that's why I called. Can you check what's wrong?", sentiment: 'Negative' },
@@ -2698,7 +2951,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
     if (countdownActive || countdownSent) return;
     const lastMsg = liveMessages[liveMessages.length - 1];
     if (!lastMsg || lastMsg.from !== 'customer') return;
-    const postActionNbas = getPostActionNBAs(completedActions, customerCtx);
+    const postActionNbas = getPostActionNBAs(completedActions, customerCtx, lastMsg.text);
     const availableNbas = postActionNbas.filter(a => !usedActions.has(a.id));
     if (availableNbas.length === 0) return;
 
@@ -2835,12 +3088,16 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
           }
         }
 
-        const cls = classifyIntent(msgsUpTo, customerCtx);
-        const kb = (cls.mode === 'kb_response' || cls.mode === 'both')
-          ? getKBResponse(msgsUpTo) : null;
-        const nba = (cls.mode === 'nba' || cls.mode === 'both')
-          ? getNextBestActions(msgsUpTo, customerCtx) : [];
-        map[msg.id] = { classification: cls, kbResponse: kb, nba, chosenId };
+        if (hasActionContext && isLatestCustomerMsg) {
+          map[msg.id] = { classification: null, kbResponse: null, nba: [], chosenId, suppressed: true };
+        } else {
+          const cls = classifyIntent(msgsUpTo, customerCtx);
+          const kb = (cls.mode === 'kb_response' || cls.mode === 'both')
+            ? getKBResponse(msgsUpTo) : null;
+          const nba = (cls.mode === 'nba' || cls.mode === 'both')
+            ? getNextBestActions(msgsUpTo, customerCtx) : [];
+          map[msg.id] = { classification: cls, kbResponse: kb, nba, chosenId };
+        }
       }
     });
     return map;
@@ -3016,7 +3273,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
 
   return (
     <div style={{
-      flex: 1,
+      flex: 1, position: 'relative',
       backgroundColor: colors.background, display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
     }}>
@@ -3041,8 +3298,109 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
             Context-aware agent assistant
           </div>
         </div>
+        {/* Coaching Score Badge — pill with shield icon */}
+        <div
+          onClick={() => setSubTab('coach')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer',
+            padding: '4px 10px 4px 8px', borderRadius: theme.radii.full,
+            backgroundColor: coachingResult.score >= 80 ? 'rgba(16, 185, 129, 0.1)'
+              : coachingResult.score >= 50 ? 'rgba(245, 158, 11, 0.1)'
+              : 'rgba(239, 68, 68, 0.1)',
+            border: `1px solid ${coachingResult.score >= 80 ? 'rgba(16, 185, 129, 0.2)'
+              : coachingResult.score >= 50 ? 'rgba(245, 158, 11, 0.2)'
+              : 'rgba(239, 68, 68, 0.2)'}`,
+            transition: theme.transitions.fast, flexShrink: 0,
+          }}
+        >
+          <Shield size={12} color={coachingResult.score >= 80 ? theme.colors.success : coachingResult.score >= 50 ? theme.colors.warning : theme.colors.error} />
+          <span style={{
+            fontSize: '11px', fontWeight: 600,
+            color: coachingResult.score >= 80 ? theme.colors.success
+              : coachingResult.score >= 50 ? theme.colors.warning
+              : theme.colors.error,
+          }}>
+            Coaching {coachingResult.score}%
+          </span>
+        </div>
       </div>
 
+      {/* ─── Sub-tab Bar ─── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '0',
+        borderBottom: `1px solid ${colors.border}`,
+        backgroundColor: colors.surface,
+        paddingLeft: '4px',
+      }}>
+        {[
+          { id: 'assist', label: 'Assist', icon: Sparkles },
+          { id: 'coach', label: 'Coach', icon: Shield },
+          { id: 'team', label: 'Team', icon: MessageSquare },
+        ].map(tab => {
+          const isActive = subTab === tab.id;
+          const Icon = tab.icon;
+          const hasCoachAlert = tab.id === 'coach' && coachingResult.activeNudges.length > 0;
+          const hasCoachEscalation = tab.id === 'coach' && coachingResult.escalations.length > 0;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setSubTab(tab.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '8px 14px', border: 'none', cursor: 'pointer',
+                backgroundColor: 'transparent', position: 'relative',
+                borderBottom: isActive ? `2px solid ${theme.colors.blue}` : '2px solid transparent',
+                marginBottom: '-1px',
+                transition: theme.transitions.fast,
+              }}
+            >
+              <Icon size={13} color={isActive ? theme.colors.blue : colors.textTertiary} />
+              <span style={{
+                fontSize: '12px', fontWeight: isActive ? 700 : 500,
+                color: isActive ? theme.colors.blue : colors.textSecondary,
+              }}>
+                {tab.label}
+              </span>
+              {hasCoachAlert && !isActive && (() => {
+                const isCritical = hasCoachEscalation || coachingResult.score < 50;
+                const badgeColor = isCritical ? theme.colors.error : theme.colors.warning;
+                const undismissedCount = coachingResult.activeNudges.filter(n => !dismissedNudges.has(n.ruleId)).length;
+                return (
+                  <div style={{
+                    minWidth: '16px', height: '16px', borderRadius: '8px',
+                    backgroundColor: badgeColor, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 4px',
+                    animation: `${isCritical ? 'coachTabPulseCritical' : 'coachTabPulse'} 1.5s ease-in-out infinite`,
+                  }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+                      {undismissedCount}
+                    </span>
+                  </div>
+                );
+              })()}
+              {hasCoachAlert && isActive && (() => {
+                const undismissedCount = coachingResult.activeNudges.filter(n => !dismissedNudges.has(n.ruleId)).length;
+                return undismissedCount > 0 ? (
+                  <div style={{
+                    minWidth: '16px', height: '16px', borderRadius: '8px',
+                    backgroundColor: theme.colors.warning, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 4px',
+                  }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+                      {undismissedCount}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ═══ ASSIST TAB ═══ */}
+      {subTab === 'assist' && (<>
       {/* ─── Voice Mode Banner ─── */}
       {isVoice && (
         <div style={{
@@ -3212,6 +3570,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
             const msgNba = sug?.nba || [];
             const msgClassification = sug?.classification;
             const msgChosenId = sug?.chosenId;
+            const isSuppressed = sug?.suppressed;
             const hasSuggestions = msgKb || msgNba.length > 0;
             const isIqQuery = !!entry.type;
 
@@ -3255,9 +3614,27 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                   </div>
                 </div>
 
-                {/* NextIQ Suggestion — unified card */}
+                {/* Suppressed indicator when Action-Priority Mode is active */}
+                {isSuppressed && (
+                  <div style={{ padding: '3px 14px 5px', paddingLeft: '46px' }}>
+                    <div style={{
+                      padding: '6px 10px', borderRadius: theme.radii.md,
+                      backgroundColor: `${theme.colors.success}06`, border: `1px dashed ${theme.colors.success}25`,
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                    }}>
+                      <Zap size={11} color={theme.colors.success} />
+                      <span style={{ fontSize: '11px', color: theme.colors.success, fontWeight: 600 }}>
+                        Intelligence informed by active tool results
+                      </span>
+                      <ArrowUpRight size={10} color={theme.colors.success} style={{ marginLeft: 'auto', opacity: 0.6 }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* NextIQ Suggestion card */}
                 {hasSuggestions && (() => {
                   const isHistoricExpanded = isLastTrigger || expandedHistoricSuggestions[entry.id];
+                  const accentColor = theme.colors.purple;
                   return (
                   <div style={{ padding: '3px 14px 5px', paddingLeft: '46px' }}>
                     <div style={{
@@ -3278,11 +3655,11 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                       >
                         {!isLastTrigger && (
                           isHistoricExpanded
-                            ? <ChevronDown size={12} color={theme.colors.purple} />
-                            : <ChevronRight size={12} color={theme.colors.purple} />
+                            ? <ChevronDown size={12} color={accentColor} />
+                            : <ChevronRight size={12} color={accentColor} />
                         )}
                         <Sparkles size={13} color={theme.colors.purple} />
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: theme.colors.purple }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: accentColor }}>
                           NextIQ
                         </span>
                         {msgClassification?.intent && (
@@ -3517,7 +3894,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                         );
                       })()}
 
-                      {/* Next Best Actions */}
+                      {/* Next Best Actions / Suggested Next Steps */}
                       {msgNba.length > 0 && (
                         <div style={{ padding: '8px 12px 10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
@@ -3938,14 +4315,17 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
             );
           }
 
+
+
           return null;
         })}
 
-        {/* ─── Active Action Block: tool results + post-action NBAs ─── */}
+        {/* ─── Active Action Block: tool results + post-action NBAs (Action-Priority Mode) ─── */}
         {hasActionContext && (() => {
           const completedEntries = Object.entries(actionResults).filter(([, r]) => r.status === 'complete');
           const loadingEntries = Object.entries(actionResults).filter(([, r]) => r.status === 'loading');
-          const postActionNbas = getPostActionNBAs(completedActions, customerCtx);
+          const latestCustText = liveMessages.filter(m => m.from === 'customer').slice(-1)[0]?.text || '';
+          const postActionNbas = getPostActionNBAs(completedActions, customerCtx, latestCustText);
           if (completedEntries.length === 0 && loadingEntries.length === 0) return null;
           return (
             <div ref={activeActionRef} style={{ padding: '8px 14px 4px' }}>
@@ -4027,17 +4407,23 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
                         const isDone = isComp || (isActionUsed && (action.type === 'reply' || action.type === 'greeting'));
                         const isTopPick = actionIdx === 0 && !isDone;
                         const isHoveredHere = hoveredAction === `active-${action.id}`;
-                        const showBody = isTopPick || isHoveredHere || isDone || isExec;
+                        const postAutopilotCountingDown = autopilot && countdownActive && !countdownSent && autopilotDecision;
+                        const postNbaAutopilotTarget = postAutopilotCountingDown && autopilotDecision.type !== 'kb' && autopilotDecision.action?.id === action.id;
+                        const postNbaAutopilotProgress = postNbaAutopilotTarget ? ((COUNTDOWN_TOTAL - countdown) / COUNTDOWN_TOTAL) * 100 : 0;
+                        const showBody = isTopPick || isHoveredHere || isDone || isExec || postNbaAutopilotTarget;
                         return (
                           <div key={action.id}
+                            ref={postNbaAutopilotTarget ? autopilotTargetRef : undefined}
                             onMouseEnter={() => !isDone && !isExec && setHoveredAction(`active-${action.id}`)}
                             onMouseLeave={() => setHoveredAction(null)}
                             style={{
-                            borderRadius: theme.radii.md, overflow: 'hidden',
-                            border: `1px solid ${isDone ? `${theme.colors.success}30` : isExec ? `${theme.colors.blue}30` : isTopPick ? `${typeConf.color}35` : isHoveredHere ? `${typeConf.color}30` : colors.border}`,
-                            backgroundColor: isDone ? `${theme.colors.success}04` : isExec ? `${theme.colors.blue}04` : isTopPick ? `${typeConf.color}04` : isHoveredHere ? `${typeConf.color}03` : colors.surface,
+                            borderRadius: theme.radii.md, overflow: 'hidden', position: 'relative',
+                            border: `1px solid ${postNbaAutopilotTarget ? `${theme.colors.blue}60` : isDone ? `${theme.colors.success}30` : isExec ? `${theme.colors.blue}30` : isTopPick ? `${typeConf.color}35` : isHoveredHere ? `${typeConf.color}30` : colors.border}`,
+                            backgroundColor: postNbaAutopilotTarget ? `${theme.colors.blue}08` : isDone ? `${theme.colors.success}04` : isExec ? `${theme.colors.blue}04` : isTopPick ? `${typeConf.color}04` : isHoveredHere ? `${typeConf.color}03` : colors.surface,
                             transition: 'border-color 0.2s ease, background-color 0.2s ease',
+                            animation: postNbaAutopilotTarget ? 'autopilotPulse 1.8s ease-in-out infinite' : 'none',
                           }}>
+                          {postNbaAutopilotTarget && <AutopilotBorderOverlay progress={postNbaAutopilotProgress} borderRadius={theme.radii.md} />}
                             {/* NBA header */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px' }}>
                               <div style={{
@@ -4224,6 +4610,388 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
           </button>
         </div>
       </div>
+      </>)}
+
+      {/* ═══ COACH TAB ═══ */}
+      {subTab === 'coach' && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0' }}>
+          {/* Score Card */}
+          <div style={{
+            padding: '20px 14px', textAlign: 'center',
+            borderBottom: `1px solid ${colors.border}`,
+            background: coachingResult.score >= 80
+              ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, transparent 100%)'
+              : coachingResult.score >= 50
+                ? 'linear-gradient(180deg, rgba(245, 158, 11, 0.04) 0%, transparent 100%)'
+                : 'linear-gradient(180deg, rgba(239, 68, 68, 0.04) 0%, transparent 100%)',
+          }}>
+            <div style={{
+              width: '72px', height: '72px', borderRadius: '50%', margin: '0 auto 10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `3px solid ${coachingResult.score >= 80 ? theme.colors.success : coachingResult.score >= 50 ? theme.colors.warning : theme.colors.error}`,
+              position: 'relative',
+            }}>
+              <span style={{
+                fontSize: '24px', fontWeight: 800,
+                color: coachingResult.score >= 80 ? theme.colors.success : coachingResult.score >= 50 ? theme.colors.warning : theme.colors.error,
+              }}>
+                {coachingResult.score}
+              </span>
+            </div>
+            <div style={{
+              fontSize: '13px', fontWeight: 700,
+              color: coachingResult.score >= 80 ? theme.colors.success : coachingResult.score >= 50 ? theme.colors.warning : theme.colors.error,
+              marginBottom: '2px',
+            }}>
+              {coachingResult.score >= 80 ? 'On Track' : coachingResult.score >= 50 ? 'Needs Attention' : 'Critical'}
+            </div>
+            <div style={{ fontSize: '11px', color: colors.textTertiary }}>
+              {coachingResult.firedRules.length === 0
+                ? 'All coaching rules passing'
+                : `${coachingResult.firedRules.length} issue${coachingResult.firedRules.length > 1 ? 's' : ''} detected`}
+            </div>
+          </div>
+
+          {/* Active Nudges */}
+          {coachingResult.activeNudges.length > 0 && (
+            <div style={{ padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                <AlertCircle size={13} color={theme.colors.warning} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>Active Nudges</span>
+                <span style={{
+                  fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: theme.radii.full,
+                  backgroundColor: theme.colors.warningMuted, color: theme.colors.warning,
+                }}>
+                  {coachingResult.activeNudges.filter(n => !dismissedNudges.has(n.ruleId)).length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {coachingResult.activeNudges.map(nudge => {
+                  const isDismissed = dismissedNudges.has(nudge.ruleId);
+                  const borderColor = nudge.severity === 'critical' ? theme.colors.error
+                    : nudge.severity === 'warning' ? theme.colors.warning : theme.colors.blue;
+                  const bgColor = nudge.severity === 'critical' ? 'rgba(239, 68, 68, 0.04)'
+                    : nudge.severity === 'warning' ? 'rgba(245, 158, 11, 0.04)' : 'rgba(0, 98, 184, 0.04)';
+                  return (
+                    <div key={nudge.ruleId} style={{
+                      padding: '10px 12px', borderRadius: theme.radii.md,
+                      backgroundColor: isDismissed ? colors.surfaceHover : bgColor,
+                      borderLeft: `3px solid ${isDismissed ? colors.border : borderColor}`,
+                      opacity: isDismissed ? 0.5 : 1,
+                      transition: theme.transitions.base,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                        {nudge.severity === 'critical'
+                          ? <AlertCircle size={12} color={isDismissed ? colors.textTertiary : theme.colors.error} />
+                          : nudge.severity === 'warning'
+                            ? <AlertCircle size={12} color={isDismissed ? colors.textTertiary : theme.colors.warning} />
+                            : <Activity size={12} color={isDismissed ? colors.textTertiary : theme.colors.blue} />}
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: isDismissed ? colors.textTertiary : colors.text }}>{nudge.ruleName}</span>
+                        <span style={{
+                          fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: theme.radii.full, marginLeft: 'auto',
+                          backgroundColor: nudge.severity === 'critical' ? theme.colors.errorMuted : nudge.severity === 'warning' ? theme.colors.warningMuted : theme.colors.blueMuted,
+                          color: nudge.severity === 'critical' ? theme.colors.error : nudge.severity === 'warning' ? theme.colors.warning : theme.colors.blue,
+                          textTransform: 'uppercase', letterSpacing: '0.3px',
+                        }}>
+                          {nudge.severity}
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 8px', fontSize: '12px', lineHeight: 1.5, color: isDismissed ? colors.textTertiary : colors.textSecondary }}>
+                        {nudge.nudgeText}
+                      </p>
+                      {!isDismissed && (
+                        <button
+                          onClick={() => setDismissedNudges(prev => new Set([...prev, nudge.ruleId]))}
+                          style={{
+                            padding: '4px 10px', borderRadius: theme.radii.sm,
+                            border: `1px solid ${colors.border}`, backgroundColor: colors.surface,
+                            fontSize: '11px', fontWeight: 600, color: colors.textSecondary,
+                            cursor: 'pointer', fontFamily: theme.fonts.body,
+                            display: 'flex', alignItems: 'center', gap: '4px',
+                          }}
+                        >
+                          <Check size={10} /> Acknowledged
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* All Rules Checklist */}
+          <div style={{ padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px', cursor: 'pointer',
+            }}
+              onClick={() => setCoachingExpanded(!coachingExpanded)}
+            >
+              <Shield size={13} color={colors.textSecondary} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>All Rules</span>
+              <ChevronDown size={12} color={colors.textTertiary} style={{
+                marginLeft: 'auto', transition: 'transform 0.2s ease',
+                transform: coachingExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+              }} />
+            </div>
+            {coachingExpanded && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {COACHING_RULES.map(rule => {
+                  const result = rule.evaluate({ messages: liveMessages, customerCtx, usedActions: [...(usedActions instanceof Set ? usedActions : []), ...Object.values(actionResults).filter(r => r.status === 'complete').map(r => r.toolName || '')] });
+                  const isFired = result && result.fired;
+                  const isNotEvaluated = result === null;
+                  return (
+                    <div key={rule.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px',
+                      borderRadius: theme.radii.sm,
+                      backgroundColor: isFired ? (rule.severity === 'critical' ? 'rgba(239, 68, 68, 0.04)' : 'rgba(245, 158, 11, 0.04)') : isNotEvaluated ? 'transparent' : 'rgba(16, 185, 129, 0.04)',
+                    }}>
+                      {isFired
+                        ? <X size={13} color={rule.severity === 'critical' ? theme.colors.error : theme.colors.warning} style={{ flexShrink: 0 }} />
+                        : isNotEvaluated
+                          ? <div style={{ width: '13px', height: '2px', backgroundColor: colors.textTertiary, borderRadius: '1px', flexShrink: 0 }} />
+                          : <Check size={13} color={theme.colors.success} style={{ flexShrink: 0 }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '12px', fontWeight: 500, color: colors.text }}>{rule.name}</div>
+                      </div>
+                      <span style={{
+                        fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: theme.radii.full,
+                        backgroundColor: rule.severity === 'critical' ? theme.colors.errorMuted : rule.severity === 'warning' ? theme.colors.warningMuted : theme.colors.blueMuted,
+                        color: rule.severity === 'critical' ? theme.colors.error : rule.severity === 'warning' ? theme.colors.warning : theme.colors.blue,
+                        textTransform: 'uppercase', letterSpacing: '0.3px', flexShrink: 0,
+                      }}>
+                        -{rule.deduction}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Escalation Log */}
+          {coachingResult.escalations.length > 0 && (
+            <div style={{ padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                <ArrowUpRight size={13} color={theme.colors.error} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>Supervisor Alerts</span>
+                <span style={{ fontSize: '10px', color: colors.textTertiary, marginLeft: 'auto' }}>Visible to your supervisor</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {coachingResult.escalations.map(esc => (
+                  <div key={esc.ruleId} style={{
+                    padding: '8px 10px', borderRadius: theme.radii.md,
+                    backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                    borderLeft: `2px solid ${theme.colors.error}`,
+                    display: 'flex', alignItems: 'flex-start', gap: '8px',
+                  }}>
+                    <AlertCircle size={12} color={theme.colors.error} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: theme.colors.error, marginBottom: '2px' }}>{esc.ruleName}</div>
+                      <div style={{ fontSize: '11px', color: colors.textSecondary, lineHeight: 1.4 }}>{esc.message}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: theme.colors.error }} />
+                        <span style={{ fontSize: '10px', color: colors.textTertiary }}>Flagged on supervisor dashboard</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {coachingResult.activeNudges.length === 0 && coachingResult.escalations.length === 0 && (
+            <div style={{
+              padding: '30px 14px', textAlign: 'center',
+            }}>
+              <Check size={24} color={theme.colors.success} style={{ margin: '0 auto 8px', display: 'block' }} />
+              <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, marginBottom: '4px' }}>All Clear</div>
+              <div style={{ fontSize: '12px', color: colors.textTertiary }}>Agent is following all coaching guidelines. Great job!</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ TEAM TAB ═══ */}
+      {subTab === 'team' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Team Messages */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px' }}>
+            {teamChatMessages.map(msg => (
+              <div key={msg.id} style={{
+                marginBottom: '10px', display: 'flex', gap: '8px', alignItems: 'flex-start',
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+                  background: msg.from === 'you'
+                    ? `linear-gradient(135deg, ${theme.colors.blue}, ${theme.colors.purple})`
+                    : `linear-gradient(135deg, ${theme.colors.success}, #0D9488)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '9px', fontWeight: 700, color: '#fff',
+                }}>
+                  {msg.initials}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: colors.text }}>{msg.name}</span>
+                    <span style={{ fontSize: '10px', color: colors.textTertiary }}>{msg.time}</span>
+                  </div>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', lineHeight: 1.5, color: colors.textSecondary }}>
+                    {msg.text}
+                  </p>
+                </div>
+              </div>
+            ))}
+            <div ref={teamChatEndRef} />
+          </div>
+
+          {/* Team Message Input */}
+          <div style={{
+            padding: '8px 12px', borderTop: `1px solid ${colors.border}`,
+            display: 'flex', gap: '6px', alignItems: 'center',
+            backgroundColor: colors.surface,
+          }}>
+            <input
+              type="text"
+              value={teamChatMsg}
+              onChange={(e) => setTeamChatMsg(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && teamChatMsg.trim()) {
+                  setTeamChatMessages(prev => [...prev, {
+                    id: Date.now(),
+                    from: 'you', name: 'You', initials: 'AR',
+                    text: teamChatMsg.trim(),
+                    time: 'Just now',
+                  }]);
+                  setTeamChatMsg('');
+                }
+              }}
+              placeholder="Message team..."
+              style={{
+                flex: 1, border: `1px solid ${colors.border}`, borderRadius: theme.radii.md,
+                padding: '6px 10px', fontSize: '12px', fontFamily: theme.fonts.body,
+                color: colors.text, backgroundColor: colors.inputBackground, outline: 'none',
+              }}
+            />
+            <button
+              onClick={() => {
+                if (!teamChatMsg.trim()) return;
+                setTeamChatMessages(prev => [...prev, {
+                  id: Date.now(),
+                  from: 'you', name: 'You', initials: 'AR',
+                  text: teamChatMsg.trim(),
+                  time: 'Just now',
+                }]);
+                setTeamChatMsg('');
+              }}
+              style={{
+                width: '28px', height: '28px', borderRadius: theme.radii.sm,
+                border: 'none', backgroundColor: theme.colors.blue, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Send size={12} color="#fff" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Coaching Toast Notification ─── */}
+      {toastNudge && subTab !== 'coach' && (
+        <div style={{
+          position: 'absolute', bottom: '60px', left: '10px', right: '10px',
+          zIndex: 50, pointerEvents: 'auto',
+          animation: toastExiting ? 'toastSlideOut 0.3s ease forwards' : 'toastSlideIn 0.3s ease forwards',
+        }}>
+          <div style={{
+            backgroundColor: colors.surface,
+            borderRadius: theme.radii.lg,
+            border: `1px solid ${toastNudge.severity === 'critical' ? `${theme.colors.error}40` : `${theme.colors.warning}40`}`,
+            borderLeft: `4px solid ${toastNudge.severity === 'critical' ? theme.colors.error : theme.colors.warning}`,
+            boxShadow: `0 8px 24px rgba(0,0,0,0.12), 0 0 0 1px ${toastNudge.severity === 'critical' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)'}`,
+            padding: '12px 14px',
+            display: 'flex', alignItems: 'flex-start', gap: '10px',
+          }}>
+            <div style={{
+              width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+              backgroundColor: toastNudge.severity === 'critical' ? theme.colors.errorMuted : theme.colors.warningMuted,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <AlertCircle size={14} color={toastNudge.severity === 'critical' ? theme.colors.error : theme.colors.warning} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px',
+              }}>
+                <span style={{
+                  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px',
+                  padding: '1px 6px', borderRadius: '4px',
+                  backgroundColor: toastNudge.severity === 'critical' ? `${theme.colors.error}18` : `${theme.colors.warning}18`,
+                  color: toastNudge.severity === 'critical' ? theme.colors.error : theme.colors.warning,
+                }}>
+                  {toastNudge.severity === 'critical' ? 'CRITICAL' : 'WARNING'}
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text }}>
+                  {toastNudge.ruleName}
+                </span>
+              </div>
+              <div style={{
+                fontSize: '12.5px', lineHeight: 1.5, color: colors.text, fontWeight: 500,
+                marginBottom: '4px',
+              }}>
+                {toastNudge.nudgeText}
+              </div>
+              {toastNudge.detail && (
+                <div style={{
+                  fontSize: '11.5px', lineHeight: 1.45, color: colors.textSecondary,
+                  padding: '6px 8px', borderRadius: '6px',
+                  backgroundColor: toastNudge.severity === 'critical' ? `${theme.colors.error}08` : `${theme.colors.warning}08`,
+                  marginBottom: '6px',
+                }}>
+                  {toastNudge.detail}
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={dismissToast}
+                  style={{
+                    padding: '4px 12px', borderRadius: theme.radii.sm,
+                    border: 'none',
+                    backgroundColor: toastNudge.severity === 'critical' ? `${theme.colors.error}14` : `${theme.colors.warning}14`,
+                    fontSize: '11px', fontWeight: 600,
+                    color: toastNudge.severity === 'critical' ? theme.colors.error : theme.colors.warning,
+                    cursor: 'pointer', transition: theme.transitions.fast,
+                  }}
+                >
+                  Got it
+                </button>
+                <button
+                  onClick={() => { dismissToast(); setSubTab('coach'); }}
+                  style={{
+                    padding: '4px 12px', borderRadius: theme.radii.sm,
+                    border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
+                    fontSize: '11px', fontWeight: 600, color: colors.textSecondary,
+                    cursor: 'pointer', transition: theme.transitions.fast,
+                  }}
+                >
+                  View all rules
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={dismissToast}
+              style={{
+                width: '20px', height: '20px', borderRadius: '50%', border: 'none',
+                backgroundColor: 'transparent', cursor: 'pointer', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginTop: '-2px',
+              }}
+            >
+              <X size={12} color={colors.textTertiary} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -5018,34 +5786,19 @@ function RightPanel({ conversation, autopilot, setAutopilot, liveMessages, setLi
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [activeTab, setActiveTab] = useState('nextiq');
-  const [teamChatOpen, setTeamChatOpen] = useState(false);
-  const [teamChatMsg, setTeamChatMsg] = useState('');
 
   useEffect(() => {
     if (nextIQQuery) setActiveTab('nextiq');
   }, [nextIQQuery]);
 
-  const teamChatMessages = [
-    { id: 1, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
-      ? "Emily Davis called in — her account may be inactive. Check if domain changed during Brightwave rebrand."
-      : "Brad Pitt is a key account. Handle the billing issue with care — renewal is in Aug.", time: '2 min ago' },
-    { id: 2, from: 'you', name: 'You', initials: 'AR', text: conversation?.channel === 'phone'
-      ? "Confirmed. Old domain brightwave.io, new is brightwavecorp.io. Reactivating now."
-      : "Got it. Found the duplicate charge — processing refund now.", time: '1 min ago' },
-    { id: 3, from: 'supervisor', name: 'Priya Sharma', initials: 'PS', text: conversation?.channel === 'phone'
-      ? "Good catch. Also mention the Spring promo — she's a good upsell candidate."
-      : "Good. Keep me posted on the outcome.", time: 'Just now' },
-  ];
-
   return (
     <div style={{ display: 'flex', height: '100%', flex: 55, minWidth: 0 }}>
-      {/* Panel Content + Team Chat */}
+      {/* Panel Content */}
       <div style={{
         flex: 1, minWidth: 0, borderLeft: `1px solid ${colors.border}`,
         backgroundColor: colors.background, display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
       }}>
-        {/* Tab Content */}
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {activeTab === 'nextiq' && (
             <NextIQPanel
@@ -5064,101 +5817,6 @@ function RightPanel({ conversation, autopilot, setAutopilot, liveMessages, setLi
           {activeTab === 'notes' && <InternalNotesPanel />}
           {activeTab === 'meetings' && <MeetingsPanel />}
           {activeTab === 'tickets' && <TicketsPanel />}
-        </div>
-
-        {/* Team Chat Drawer */}
-        <div style={{
-          borderTop: `1px solid ${colors.border}`,
-          backgroundColor: colors.surface,
-          transition: 'max-height 0.3s ease, min-height 0.3s ease',
-          maxHeight: teamChatOpen ? '45%' : '36px',
-          minHeight: '36px',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-        }}>
-          {/* Collapsed header bar */}
-          <div
-            onClick={() => setTeamChatOpen(!teamChatOpen)}
-            style={{
-              padding: '8px 14px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px',
-              borderBottom: teamChatOpen ? `1px solid ${colors.border}` : 'none',
-              backgroundColor: teamChatOpen ? colors.surface : 'transparent',
-              flexShrink: 0,
-            }}
-          >
-            <MessageSquare size={13} color={theme.colors.blue} />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: colors.text }}>Team</span>
-            <span style={{
-              fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: theme.radii.full,
-              backgroundColor: theme.colors.blue, color: '#fff', minWidth: '14px', textAlign: 'center',
-            }}>2</span>
-            <ChevronDown
-              size={14} color={colors.textSecondary}
-              style={{
-                marginLeft: 'auto', transition: 'transform 0.2s ease',
-                transform: teamChatOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-              }}
-            />
-          </div>
-
-          {/* Expanded chat content */}
-          {teamChatOpen && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px' }}>
-                {teamChatMessages.map(msg => (
-                  <div key={msg.id} style={{ marginBottom: '10px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                    <div style={{
-                      width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-                      background: msg.from === 'you'
-                        ? `linear-gradient(135deg, ${theme.colors.blue}, ${theme.colors.purple})`
-                        : `linear-gradient(135deg, ${theme.colors.success}, #0D9488)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '9px', fontWeight: 700, color: '#fff',
-                    }}>
-                      {msg.initials}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: colors.text }}>{msg.name}</span>
-                        <span style={{ fontSize: '10px', color: colors.textTertiary }}>{msg.time}</span>
-                      </div>
-                      <p style={{
-                        margin: '2px 0 0', fontSize: '12px', lineHeight: 1.5, color: colors.textSecondary,
-                      }}>
-                        {msg.text}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* Input */}
-              <div style={{
-                padding: '8px 12px', borderTop: `1px solid ${colors.border}`,
-                display: 'flex', gap: '6px', alignItems: 'center',
-              }}>
-                <input
-                  type="text"
-                  value={teamChatMsg}
-                  onChange={(e) => setTeamChatMsg(e.target.value)}
-                  placeholder="Message team..."
-                  style={{
-                    flex: 1, border: `1px solid ${colors.border}`, borderRadius: theme.radii.md,
-                    padding: '6px 10px', fontSize: '12px', fontFamily: theme.fonts.body,
-                    color: colors.text, backgroundColor: colors.inputBackground, outline: 'none',
-                  }}
-                />
-                <button style={{
-                  width: '28px', height: '28px', borderRadius: theme.radii.sm,
-                  border: 'none', backgroundColor: theme.colors.blue, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Send size={12} color="#fff" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

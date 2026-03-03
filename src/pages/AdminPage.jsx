@@ -12,10 +12,11 @@ import {
   ChevronRight, Plus, Search, Edit, Trash2, MoreHorizontal,
   Check, X, ExternalLink, Globe, Lock, Key, Bell, Mic,
   Eye, Home, ToggleLeft, ToggleRight, ArrowUpRight,
-  BookOpen, Download, Upload, RefreshCw, Star, Clock, Wrench,
+  BookOpen, Download, Upload, RefreshCw, Star, Clock, Wrench, Sparkles,
 } from 'lucide-react';
 import ActionsBuilder from '../components/ActionsBuilder';
 import ActionCanvas from '../components/ActionCanvas';
+import CoachingRulesBuilder from '../components/CoachingRulesBuilder';
 
 const sectionDefinitions = {
   account: {
@@ -36,7 +37,14 @@ const sectionDefinitions = {
       { id: 'aiEmployees', label: 'AI Employees', icon: Zap },
       { id: 'rolesPermissions', label: 'Access Control', icon: Shield },
       { id: 'skills', label: 'Skills', icon: Grid },
+    ],
+  },
+  nextIQ: {
+    title: 'NextIQ',
+    items: [
       { id: 'actionsBuilder', label: 'Actions Builder', icon: Wrench },
+      { id: 'coachingRules', label: 'Coaching Rules', icon: Shield },
+      { id: 'supervisorDashboard', label: 'Supervisor Dashboard', icon: Eye },
     ],
   },
   manage: {
@@ -166,6 +174,254 @@ function AdminHome({ navigateToSection }) {
           </div>
         ))}
       </Card>
+    </div>
+  );
+}
+
+/* ═══ Supervisor Dashboard — Needs Attention ═══ */
+const MOCK_AGENTS = [
+  {
+    id: 'a1', name: 'Anil Reddy', initials: 'AR',
+    gradient: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
+    activeConversation: 'Brad Pitt — Billing Issue',
+    score: 80, status: 'warning',
+    alerts: [
+      { id: 'al1', rule: 'VIP Churn Risk Escalation', severity: 'critical', message: 'VIP customer at churn risk — agent has not acknowledged risk factors.', time: '2 min ago' },
+    ],
+  },
+  {
+    id: 'a2', name: 'Jamie Chen', initials: 'JC',
+    gradient: 'linear-gradient(135deg, #10B981, #0D9488)',
+    activeConversation: 'Sarah Kim — Account Upgrade',
+    score: 100, status: 'good',
+    alerts: [],
+  },
+  {
+    id: 'a3', name: 'Priya Patel', initials: 'PP',
+    gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
+    activeConversation: 'Tom Bradley — Service Outage',
+    score: 55, status: 'critical',
+    alerts: [
+      { id: 'al2', rule: 'Tone Monitoring', severity: 'warning', message: 'Customer expressed frustration — agent has not shown empathy.', time: '5 min ago' },
+      { id: 'al3', rule: 'Sensitive Data Compliance', severity: 'critical', message: 'Agent shared account details without completing identity verification.', time: '3 min ago' },
+    ],
+  },
+  {
+    id: 'a4', name: 'Marcus Brown', initials: 'MB',
+    gradient: 'linear-gradient(135deg, #EC4899, #DB2777)',
+    activeConversation: 'Amanda Foster — Plan Expansion',
+    score: 95, status: 'good',
+    alerts: [],
+  },
+  {
+    id: 'a5', name: 'Sophia Wang', initials: 'SW',
+    gradient: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+    activeConversation: 'David Kim — API Rate Limit',
+    score: 70, status: 'warning',
+    alerts: [
+      { id: 'al4', rule: 'Upsell Timing', severity: 'warning', message: 'Upsell attempted before resolving the customer\'s issue.', time: '1 min ago' },
+    ],
+  },
+];
+
+function SupervisorDashboard() {
+  const { theme: themeMode } = useTheme();
+  const colors = theme.themes[themeMode];
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [hoveredAgent, setHoveredAgent] = useState(null);
+  const [filterMode, setFilterMode] = useState('all');
+
+  const needsAttention = MOCK_AGENTS.filter(a => a.alerts.length > 0);
+  const onTrack = MOCK_AGENTS.filter(a => a.alerts.length === 0);
+  const displayAgents = filterMode === 'attention' ? needsAttention : filterMode === 'ontrack' ? onTrack : MOCK_AGENTS;
+
+  const totalAlerts = MOCK_AGENTS.reduce((sum, a) => sum + a.alerts.length, 0);
+  const avgScore = Math.round(MOCK_AGENTS.reduce((sum, a) => sum + a.score, 0) / MOCK_AGENTS.length);
+
+  const scoreColor = (s) => s >= 80 ? theme.colors.success : s >= 50 ? theme.colors.warning : theme.colors.error;
+  const scoreBg = (s) => s >= 80 ? 'rgba(16,185,129,0.08)' : s >= 50 ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)';
+
+  return (
+    <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: colors.text, margin: 0 }}>Supervisor Dashboard</h1>
+        <p style={{ fontSize: '14px', color: colors.textSecondary, margin: '4px 0 0' }}>Real-time coaching oversight for your team</p>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        {[
+          { label: 'Active Agents', value: MOCK_AGENTS.length, icon: Users, color: theme.colors.blue },
+          { label: 'Needs Attention', value: needsAttention.length, icon: Bell, color: needsAttention.length > 0 ? theme.colors.error : theme.colors.success },
+          { label: 'Open Alerts', value: totalAlerts, icon: Shield, color: totalAlerts > 0 ? theme.colors.warning : theme.colors.success },
+          { label: 'Avg. Coaching Score', value: `${avgScore}%`, icon: Star, color: scoreColor(avgScore) },
+        ].map((card, i) => {
+          const CardIcon = card.icon;
+          return (
+            <div key={i} style={{
+              padding: '18px', borderRadius: theme.radii.lg,
+              backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
+              display: 'flex', alignItems: 'center', gap: '14px',
+            }}>
+              <div style={{
+                width: '40px', height: '40px', borderRadius: theme.radii.md,
+                backgroundColor: `${card.color}10`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <CardIcon size={18} color={card.color} />
+              </div>
+              <div>
+                <div style={{ fontSize: '22px', fontWeight: 700, color: colors.text }}>{card.value}</div>
+                <div style={{ fontSize: '12px', color: colors.textSecondary }}>{card.label}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Filter bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        {[
+          { id: 'all', label: `All Agents (${MOCK_AGENTS.length})` },
+          { id: 'attention', label: `Needs Attention (${needsAttention.length})` },
+          { id: 'ontrack', label: `On Track (${onTrack.length})` },
+        ].map(f => (
+          <button key={f.id} onClick={() => setFilterMode(f.id)} style={{
+            padding: '6px 14px', borderRadius: theme.radii.full, border: `1px solid ${filterMode === f.id ? theme.colors.blue : colors.border}`,
+            backgroundColor: filterMode === f.id ? `${theme.colors.blue}10` : 'transparent',
+            color: filterMode === f.id ? theme.colors.blue : colors.textSecondary,
+            fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
+            transition: theme.transitions.fast,
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {/* Agent List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {displayAgents.map(agent => {
+          const isExpanded = selectedAgent === agent.id;
+          const isHov = hoveredAgent === agent.id;
+          return (
+            <div key={agent.id}
+              onClick={() => setSelectedAgent(isExpanded ? null : agent.id)}
+              onMouseEnter={() => setHoveredAgent(agent.id)}
+              onMouseLeave={() => setHoveredAgent(null)}
+              style={{
+                borderRadius: theme.radii.lg, border: `1px solid ${agent.alerts.length > 0 ? 'rgba(239,68,68,0.2)' : colors.border}`,
+                backgroundColor: isHov ? colors.surfaceHover : colors.surface,
+                cursor: 'pointer', transition: theme.transitions.fast, overflow: 'hidden',
+              }}
+            >
+              {/* Agent Row */}
+              <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '36px', height: '36px', borderRadius: '50%', background: agent.gradient,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0,
+                }}>{agent.initials}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{agent.name}</span>
+                    {agent.alerts.length > 0 && (
+                      <span style={{
+                        padding: '2px 8px', borderRadius: theme.radii.full,
+                        backgroundColor: 'rgba(239,68,68,0.08)', color: theme.colors.error,
+                        fontSize: '10px', fontWeight: 700,
+                      }}>
+                        {agent.alerts.length} alert{agent.alerts.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>
+                    {agent.activeConversation}
+                  </div>
+                </div>
+                {/* Coaching Score */}
+                <div style={{
+                  padding: '4px 12px', borderRadius: theme.radii.full,
+                  backgroundColor: scoreBg(agent.score),
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                }}>
+                  <Shield size={12} color={scoreColor(agent.score)} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: scoreColor(agent.score) }}>
+                    {agent.score}%
+                  </span>
+                </div>
+                <ChevronDown size={14} color={colors.textTertiary} style={{
+                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: theme.transitions.fast,
+                }} />
+              </div>
+
+              {/* Expanded Alert Details */}
+              {isExpanded && (
+                <div style={{
+                  borderTop: `1px solid ${colors.border}`, padding: '14px 18px',
+                  backgroundColor: agent.alerts.length > 0 ? 'rgba(239,68,68,0.02)' : 'rgba(16,185,129,0.02)',
+                }}>
+                  {agent.alerts.length > 0 ? (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                        <Bell size={12} color={theme.colors.error} />
+                        <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: theme.colors.error }}>
+                          Active Alerts
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {agent.alerts.map(alert => (
+                          <div key={alert.id} style={{
+                            padding: '10px 12px', borderRadius: theme.radii.md,
+                            backgroundColor: alert.severity === 'critical' ? 'rgba(239,68,68,0.05)' : 'rgba(245,158,11,0.05)',
+                            borderLeft: `3px solid ${alert.severity === 'critical' ? theme.colors.error : theme.colors.warning}`,
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <span style={{
+                                padding: '1px 6px', borderRadius: theme.radii.full, fontSize: '9px', fontWeight: 700,
+                                textTransform: 'uppercase', letterSpacing: '0.3px',
+                                backgroundColor: alert.severity === 'critical' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
+                                color: alert.severity === 'critical' ? theme.colors.error : theme.colors.warning,
+                              }}>{alert.severity}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text }}>{alert.rule}</span>
+                              <span style={{ fontSize: '10px', color: colors.textTertiary, marginLeft: 'auto' }}>{alert.time}</span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: colors.textSecondary, lineHeight: 1.5 }}>{alert.message}</div>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                              <button style={{
+                                padding: '4px 10px', borderRadius: theme.radii.sm,
+                                border: `1px solid ${theme.colors.blue}`, backgroundColor: `${theme.colors.blue}08`,
+                                color: theme.colors.blue, fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                                fontFamily: theme.fonts.body,
+                              }}>Whisper Coach</button>
+                              <button style={{
+                                padding: '4px 10px', borderRadius: theme.radii.sm,
+                                border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
+                                color: colors.textSecondary, fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                                fontFamily: theme.fonts.body,
+                              }}>Listen In</button>
+                              <button style={{
+                                padding: '4px 10px', borderRadius: theme.radii.sm,
+                                border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
+                                color: colors.textSecondary, fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                                fontFamily: theme.fonts.body,
+                              }}>Dismiss</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
+                      <Check size={14} color={theme.colors.success} />
+                      <span style={{ fontSize: '12px', color: colors.textSecondary }}>
+                        Agent is following all coaching guidelines — no active alerts.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -890,7 +1146,7 @@ function SectionContent({ sectionId }) {
 export default function AdminPage({ setActiveNav }) {
   const [activeSection, setActiveSection] = useState('home');
   const [expandedSections, setExpandedSections] = useState({
-    account: true, peopleAI: true, manage: true, channels: true, nextStudio: true,
+    account: true, peopleAI: true, nextIQ: true, manage: true, channels: true, nextStudio: true,
   });
   const [hovered, setHovered] = useState(null);
   const [canvasAction, setCanvasAction] = useState(null);
@@ -967,10 +1223,15 @@ export default function AdminPage({ setActiveNav }) {
                 }}
               >
                 <span style={{
-                  fontSize: '11px', fontWeight: 600, color: colors.textSecondary,
+                  fontSize: '11px', fontWeight: 600,
+                  color: key === 'nextIQ' ? theme.colors.blue : colors.textSecondary,
                   textTransform: 'uppercase', letterSpacing: '0.5px',
                   fontFamily: theme.fonts.body,
-                }}>{section.title}</span>
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                }}>
+                  {key === 'nextIQ' && <Sparkles size={12} color={theme.colors.blue} />}
+                  {section.title}
+                </span>
                 {expandedSections[key] ? (
                   <ChevronDown size={14} color={colors.textTertiary} />
                 ) : (
@@ -1025,6 +1286,10 @@ export default function AdminPage({ setActiveNav }) {
         <main ref={mainRef} style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
           {activeSection === 'actionsBuilder' ? (
             <ActionsBuilder onOpenCanvas={(action) => setCanvasAction(action)} />
+          ) : activeSection === 'coachingRules' ? (
+            <CoachingRulesBuilder />
+          ) : activeSection === 'supervisorDashboard' ? (
+            <SupervisorDashboard />
           ) : (
           <div style={{ maxWidth: '960px', margin: '0 auto' }}>
             {activeSection === 'home' ? (

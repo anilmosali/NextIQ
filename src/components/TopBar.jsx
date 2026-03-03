@@ -316,10 +316,10 @@ export default function TopBar({ activeNav, setActiveNav }) {
         {/* Onboarding Widget */}
         <OnboardingWidget setActiveNav={setActiveNav} />
 
-        {/* NextIQ Button */}
+        {/* Copilot Button */}
         <button
           onClick={() => setActiveNav && setActiveNav('nextiq')}
-          aria-label="NextIQ"
+          aria-label="Copilot"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -355,7 +355,7 @@ export default function TopBar({ activeNav, setActiveNav }) {
           >
             <Sparkles size={13} color="white" fill="white" strokeWidth={0} />
           </div>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>NextIQ</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>Copilot</span>
         </button>
 
         {/* Divider */}
