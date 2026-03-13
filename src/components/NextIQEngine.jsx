@@ -93,7 +93,7 @@ function ActionPickerDropdown({ linkedActions, onAdd, onClose, colors }) {
 
 const TOPOLOGY_MAX = 3;
 
-export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals }) {
+export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals, onNavigateToGuardrails }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
 
@@ -205,7 +205,11 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals }) {
         </div>
 
         {(() => {
-          const visibleGoals = NEXTIQ_GOALS.slice(0, TOPOLOGY_MAX);
+          const sorted = [...NEXTIQ_GOALS].sort((a, b) => {
+            if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+            return b.metrics.sessions - a.metrics.sessions;
+          });
+          const visibleGoals = sorted.slice(0, TOPOLOGY_MAX);
           const remaining = NEXTIQ_GOALS.length - TOPOLOGY_MAX;
           const rowCount = visibleGoals.length + (remaining > 0 ? 1 : 0);
 
@@ -294,15 +298,22 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals }) {
           );
         })()}
 
-        <div style={{
-          marginTop: '16px', padding: '10px 16px', borderRadius: theme.radii.md,
-          backgroundColor: `${theme.colors.warning}08`, border: `1px dashed ${theme.colors.warning}30`,
-          display: 'flex', alignItems: 'center', gap: '8px',
-        }}>
+        <div
+          onClick={() => onNavigateToGuardrails?.()}
+          style={{
+            marginTop: '16px', padding: '10px 16px', borderRadius: theme.radii.md,
+            backgroundColor: `${theme.colors.warning}08`, border: `1px dashed ${theme.colors.warning}30`,
+            display: 'flex', alignItems: 'center', gap: '8px',
+            cursor: 'pointer', transition: theme.transitions.fast,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = `${theme.colors.warning}14`; e.currentTarget.style.borderColor = `${theme.colors.warning}50`; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = `${theme.colors.warning}08`; e.currentTarget.style.borderColor = `${theme.colors.warning}30`; }}
+        >
           <AlertTriangle size={14} color={theme.colors.warning} />
-          <span style={{ fontSize: '12px', color: colors.textSecondary }}>
+          <span style={{ fontSize: '12px', color: colors.textSecondary, flex: 1 }}>
             <strong style={{ color: colors.text }}>{NEXTIQ_GUARDRAILS.filter(g => g.status === 'active').length} Guardrails</strong> governing all sub-agents
           </span>
+          <ChevronRight size={14} color={theme.colors.warning} />
         </div>
       </div>
 
@@ -813,10 +824,13 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals }) {
         padding: '24px', borderRadius: theme.radii.xl,
         backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <Settings size={14} color={colors.textSecondary} />
           <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Global Settings</span>
         </div>
+        <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 20px' }}>
+          These settings apply when no goal-specific override is configured.
+        </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -834,9 +848,6 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals }) {
             </select>
           </div>
         </div>
-        <p style={{ fontSize: '11px', color: colors.textTertiary, marginTop: '14px', margin: '14px 0 0' }}>
-          These settings apply when no goal-specific override is configured.
-        </p>
       </div>
     </div>
   );

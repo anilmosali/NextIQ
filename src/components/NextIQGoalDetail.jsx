@@ -8,13 +8,14 @@ import {
 } from 'lucide-react';
 import { NEXTIQ_GOALS, NEXTIQ_ENGINE, NEXTIQ_GUARDRAILS } from '../data/nextiqConfig';
 
-export default function NextIQGoalDetail({ goalId, onBack }) {
+export default function NextIQGoalDetail({ goalId, onBack, onEdit, allGoals: allGoalsProp, customGoals = [] }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [activeTab, setActiveTab] = useState('overview');
   const [editingPrompt, setEditingPrompt] = useState(false);
 
-  const goal = useMemo(() => NEXTIQ_GOALS.find(g => g.id === goalId), [goalId]);
+  const goalList = allGoalsProp || [...NEXTIQ_GOALS, ...customGoals];
+  const goal = useMemo(() => goalList.find(g => g.id === goalId), [goalId, goalList]);
   const [goalPrompt, setGoalPrompt] = useState(goal?.prompt || '');
 
   if (!goal) return null;
@@ -59,7 +60,7 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
           </div>
           <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0 }}>{goal.description}</p>
         </div>
-        <button style={{
+        <button onClick={() => onEdit?.(goalId)} style={{
           padding: '8px 16px', borderRadius: theme.radii.md,
           border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
           color: colors.text, fontSize: '13px', fontWeight: 600, fontFamily: theme.fonts.body,
@@ -193,9 +194,6 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
                   fontSize: '12px', color: colors.textSecondary, padding: '4px 0',
                   borderTop: i > 0 ? `1px solid ${colors.borderLight}` : 'none',
                 }}>
-                  <span style={{ color: gr.severity === 'critical' ? theme.colors.error : theme.colors.warning, fontWeight: 600, marginRight: '4px' }}>
-                    {gr.id}
-                  </span>
                   {gr.name}
                 </div>
               ))}
@@ -304,16 +302,10 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
             padding: '20px', borderRadius: theme.radii.xl,
             backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={14} color={theme.colors.blue} />
-                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Knowledge Sources</span>
-              </div>
-              <button style={{
-                padding: '5px 12px', borderRadius: theme.radii.md, border: `1px solid ${colors.border}`,
-                backgroundColor: 'transparent', color: theme.colors.blue,
-                fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
-              }}>+ Map Knowledge</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <FileText size={14} color={theme.colors.blue} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Knowledge Sources</span>
+              <span style={{ fontSize: '11px', color: colors.textTertiary }}>({goal.knowledge.length})</span>
             </div>
             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px' }}>
               KB articles assigned to this goal. NextIQ retrieves from these sources when this sub-agent is active.
@@ -344,16 +336,10 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
             padding: '20px', borderRadius: theme.radii.xl,
             backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Wrench size={14} color={theme.colors.purple} />
-                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Mapped Actions</span>
-              </div>
-              <button style={{
-                padding: '5px 12px', borderRadius: theme.radii.md, border: `1px solid ${colors.border}`,
-                backgroundColor: 'transparent', color: theme.colors.blue,
-                fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
-              }}>+ Map Action</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Wrench size={14} color={theme.colors.purple} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Mapped Actions</span>
+              <span style={{ fontSize: '11px', color: colors.textTertiary }}>({goal.actions.length})</span>
             </div>
             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px' }}>
               Tools/APIs available to this goal. These appear as ACTION NBAs when relevant.
@@ -384,16 +370,10 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
             padding: '20px', borderRadius: theme.radii.xl,
             backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Shield size={14} color={theme.colors.warning} />
-                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Linked Guardrails</span>
-              </div>
-              <button style={{
-                padding: '5px 12px', borderRadius: theme.radii.md, border: `1px solid ${colors.border}`,
-                backgroundColor: 'transparent', color: theme.colors.blue,
-                fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
-              }}>+ Link Guardrail</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Shield size={14} color={theme.colors.warning} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Linked Guardrails</span>
+              <span style={{ fontSize: '11px', color: colors.textTertiary }}>({linkedGuardrails.length})</span>
             </div>
             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px' }}>
               Governance rules enforced on this goal's outputs and actions.
@@ -410,7 +390,10 @@ export default function NextIQGoalDetail({ goalId, onBack }) {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{gr.name}</span>
-                      <span style={{
+                      <span title={gr.severity === 'critical'
+                        ? 'Hard block — action is stopped. Autopilot escalates to human.'
+                        : 'Soft flag — agent is warned but can override. Logged for audit.'}
+                      style={{
                         padding: '1px 6px', borderRadius: theme.radii.full, fontSize: '9px', fontWeight: 700,
                         textTransform: 'uppercase',
                         backgroundColor: gr.severity === 'critical' ? theme.colors.errorMuted : theme.colors.warningMuted,

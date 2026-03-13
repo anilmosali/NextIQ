@@ -3,18 +3,23 @@ import theme from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
   Target, Plus, Search, ChevronRight, Activity, Clock,
-  ThumbsUp, Star, Pause, Play, MoreHorizontal,
+  ThumbsUp, Star, Pause, Play, MoreHorizontal, Trash2,
+  ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { NEXTIQ_GOALS } from '../data/nextiqConfig';
 
-export default function NextIQGoals({ onSelectGoal }) {
+export default function NextIQGoals({ onSelectGoal, onCreateGoal, onToggleGoal, onDeleteGoal, allGoals: allGoalsProp, customGoals = [] }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [hoveredGoal, setHoveredGoal] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const filtered = NEXTIQ_GOALS.filter(g => {
+  const allGoals = allGoalsProp || [...NEXTIQ_GOALS, ...customGoals];
+
+  const filtered = allGoals.filter(g => {
     if (filter === 'active' && g.status !== 'active') return false;
     if (filter === 'paused' && g.status !== 'paused') return false;
     if (search && !g.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -24,11 +29,11 @@ export default function NextIQGoals({ onSelectGoal }) {
   const statusColor = (s) => s === 'active' ? theme.colors.success : theme.colors.warning;
   const statusBg = (s) => s === 'active' ? theme.colors.successMuted : theme.colors.warningMuted;
 
-  const totalSessions = NEXTIQ_GOALS.reduce((s, g) => s + g.metrics.sessions, 0);
+  const totalSessions = allGoals.reduce((s, g) => s + g.metrics.sessions, 0);
   const avgAcceptance = Math.round(
-    NEXTIQ_GOALS.filter(g => g.metrics.nbaAcceptance > 0)
+    allGoals.filter(g => g.metrics.nbaAcceptance > 0)
       .reduce((s, g) => s + g.metrics.nbaAcceptance, 0) /
-    (NEXTIQ_GOALS.filter(g => g.metrics.nbaAcceptance > 0).length || 1)
+    (allGoals.filter(g => g.metrics.nbaAcceptance > 0).length || 1)
   );
 
   return (
@@ -40,7 +45,7 @@ export default function NextIQGoals({ onSelectGoal }) {
             Specialized sub-agents that handle specific customer intents
           </p>
         </div>
-        <button style={{
+        <button onClick={() => onCreateGoal?.()} style={{
           padding: '8px 18px', borderRadius: theme.radii.md, border: 'none',
           backgroundColor: theme.colors.blue, color: '#fff',
           fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
@@ -53,8 +58,8 @@ export default function NextIQGoals({ onSelectGoal }) {
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '20px' }}>
         {[
-          { label: 'Total Goals', value: NEXTIQ_GOALS.length, icon: Target, color: theme.colors.blue },
-          { label: 'Active', value: NEXTIQ_GOALS.filter(g => g.status === 'active').length, icon: Play, color: theme.colors.success },
+          { label: 'Total Goals', value: allGoals.length, icon: Target, color: theme.colors.blue },
+          { label: 'Active', value: allGoals.filter(g => g.status === 'active').length, icon: Play, color: theme.colors.success },
           { label: 'Sessions (24h)', value: totalSessions, icon: Activity, color: theme.colors.purple },
           { label: 'NBA Acceptance', value: `${avgAcceptance}%`, icon: ThumbsUp, color: theme.colors.blue },
         ].map((card, i) => {
@@ -187,7 +192,67 @@ export default function NextIQGoals({ onSelectGoal }) {
                 )}
               </div>
 
-              <ChevronRight size={16} color={colors.textTertiary} />
+              {/* Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, position: 'relative' }}>
+                <button
+                  title={goal.status === 'active' ? 'Pause goal' : 'Activate goal'}
+                  onClick={(e) => { e.stopPropagation(); onToggleGoal?.(goal.id); }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = colors.surfaceHover}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  style={{
+                    padding: '6px', borderRadius: theme.radii.md, border: 'none',
+                    backgroundColor: 'transparent', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', transition: theme.transitions.fast,
+                  }}
+                >
+                  {goal.status === 'active'
+                    ? <Pause size={14} color={theme.colors.warning} />
+                    : <Play size={14} color={theme.colors.success} />}
+                </button>
+                <button
+                  title="Delete goal"
+                  onClick={(e) => { e.stopPropagation(); setConfirmDelete(goal.id); }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = theme.colors.errorMuted}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  style={{
+                    padding: '6px', borderRadius: theme.radii.md, border: 'none',
+                    backgroundColor: 'transparent', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', transition: theme.transitions.fast,
+                  }}
+                >
+                  <Trash2 size={14} color={theme.colors.error} />
+                </button>
+                <ChevronRight size={16} color={colors.textTertiary} />
+
+                {/* Delete Confirmation */}
+                {confirmDelete === goal.id && (
+                  <div onClick={e => e.stopPropagation()} style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: '4px',
+                    padding: '14px 18px', borderRadius: theme.radii.lg, width: '260px',
+                    backgroundColor: colors.surface, border: `1px solid ${theme.colors.error}30`,
+                    boxShadow: theme.shadows.dropdown, zIndex: 100,
+                  }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: colors.text, margin: '0 0 6px' }}>
+                      Delete "{goal.name}"?
+                    </p>
+                    <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px', lineHeight: 1.5 }}>
+                      This will remove the goal and its configuration. This cannot be undone.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }} style={{
+                        padding: '5px 14px', borderRadius: theme.radii.md, border: `1px solid ${colors.border}`,
+                        backgroundColor: 'transparent', color: colors.textSecondary,
+                        fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
+                      }}>Cancel</button>
+                      <button onClick={(e) => { e.stopPropagation(); onDeleteGoal?.(goal.id); setConfirmDelete(null); }} style={{
+                        padding: '5px 14px', borderRadius: theme.radii.md, border: 'none',
+                        backgroundColor: theme.colors.error, color: '#fff',
+                        fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
+                      }}>Delete</button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

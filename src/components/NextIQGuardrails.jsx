@@ -3,18 +3,20 @@ import theme from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
   Shield, Plus, AlertTriangle, ChevronDown, Target,
-  ToggleRight, ToggleLeft, Activity, Search,
+  ToggleRight, ToggleLeft, Activity, Search, Edit,
 } from 'lucide-react';
 import { NEXTIQ_GUARDRAILS, NEXTIQ_GOALS } from '../data/nextiqConfig';
 
-export default function NextIQGuardrails() {
+export default function NextIQGuardrails({ onCreateGuardrail, onEditGuardrail, allGuardrails: allGuardrailsProp, customGuardrails = [] }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [expandedRule, setExpandedRule] = useState(null);
   const [hoveredRule, setHoveredRule] = useState(null);
 
-  const criticalCount = NEXTIQ_GUARDRAILS.filter(g => g.severity === 'critical').length;
-  const warningCount = NEXTIQ_GUARDRAILS.filter(g => g.severity === 'warning').length;
+  const allGuardrails = allGuardrailsProp || [...NEXTIQ_GUARDRAILS, ...customGuardrails];
+
+  const criticalCount = allGuardrails.filter(g => g.severity === 'critical').length;
+  const warningCount = allGuardrails.filter(g => g.severity === 'warning').length;
 
   const goalName = (id) => NEXTIQ_GOALS.find(g => g.id === id)?.name || id;
 
@@ -27,7 +29,7 @@ export default function NextIQGuardrails() {
             Governance rules that constrain NextIQ's behavior across all sub-agents
           </p>
         </div>
-        <button style={{
+        <button onClick={() => onCreateGuardrail?.()} style={{
           padding: '8px 18px', borderRadius: theme.radii.md, border: 'none',
           backgroundColor: theme.colors.blue, color: '#fff',
           fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: theme.fonts.body,
@@ -40,7 +42,7 @@ export default function NextIQGuardrails() {
       {/* Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '20px' }}>
         {[
-          { label: 'Total Rules', value: NEXTIQ_GUARDRAILS.length, icon: Shield, color: theme.colors.blue },
+          { label: 'Total Rules', value: allGuardrails.length, icon: Shield, color: theme.colors.blue },
           { label: 'Critical', value: criticalCount, icon: AlertTriangle, color: theme.colors.error },
           { label: 'Warning', value: warningCount, icon: Activity, color: theme.colors.warning },
         ].map((card, i) => {
@@ -68,7 +70,7 @@ export default function NextIQGuardrails() {
 
       {/* Rules List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {NEXTIQ_GUARDRAILS.map(rule => {
+        {allGuardrails.map(rule => {
           const isExpanded = expandedRule === rule.id;
           const isHov = hoveredRule === rule.id;
           const sevColor = rule.severity === 'critical' ? theme.colors.error : theme.colors.warning;
@@ -104,12 +106,11 @@ export default function NextIQGuardrails() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                    <span style={{
-                      fontSize: '11px', fontWeight: 700, color: sevColor,
-                      fontFamily: "'Space Grotesk', monospace",
-                    }}>{rule.id}</span>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{rule.name}</span>
-                    <span style={{
+                    <span title={rule.severity === 'critical'
+                      ? 'Hard block — action is stopped. Autopilot escalates to human.'
+                      : 'Soft flag — agent is warned but can override. Logged for audit.'}
+                    style={{
                       padding: '2px 7px', borderRadius: theme.radii.full, fontSize: '10px', fontWeight: 700,
                       backgroundColor: sevBg, color: sevColor, textTransform: 'uppercase',
                     }}>{rule.severity}</span>
@@ -147,6 +148,23 @@ export default function NextIQGuardrails() {
                   borderTop: `1px solid ${colors.border}`, padding: '16px 20px',
                   backgroundColor: `${sevColor}02`,
                 }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                    <button
+                      onClick={() => onEditGuardrail?.(rule.id)}
+                      style={{
+                        padding: '6px 14px', borderRadius: theme.radii.md,
+                        border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
+                        color: colors.text, fontSize: '12px', fontWeight: 600,
+                        cursor: 'pointer', fontFamily: theme.fonts.body,
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        transition: theme.transitions.fast,
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = colors.surfaceHover}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Edit size={13} /> Edit Guardrail
+                    </button>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                     <div>
                       <div style={{ fontSize: '11px', fontWeight: 700, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
