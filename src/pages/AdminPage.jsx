@@ -17,6 +17,11 @@ import {
 import ActionsBuilder from '../components/ActionsBuilder';
 import ActionCanvas from '../components/ActionCanvas';
 import CoachingRulesBuilder from '../components/CoachingRulesBuilder';
+import NextIQEngine from '../components/NextIQEngine';
+import NextIQGoals from '../components/NextIQGoals';
+import NextIQGoalDetail from '../components/NextIQGoalDetail';
+import NextIQGuardrails from '../components/NextIQGuardrails';
+import NextIQPlaybooks from '../components/NextIQPlaybooks';
 
 const sectionDefinitions = {
   account: {
@@ -42,8 +47,12 @@ const sectionDefinitions = {
   nextIQ: {
     title: 'NextIQ',
     items: [
-      { id: 'actionsBuilder', label: 'Actions Builder', icon: Wrench },
-      { id: 'coachingRules', label: 'Coaching Rules', icon: Shield },
+      { id: 'nextiqEngine', label: 'Engine', icon: Settings },
+      { id: 'nextiqGoals', label: 'Goals', icon: Sparkles },
+      { id: 'actionsBuilder', label: 'Actions', icon: Wrench },
+      { id: 'nextiqGuardrails', label: 'Guardrails', icon: Shield },
+      { id: 'coachingRules', label: 'Coaching Rules', icon: Eye },
+      { id: 'nextiqPlaybooks', label: 'Playbooks', icon: BookOpen },
       { id: 'supervisorDashboard', label: 'Supervisor Dashboard', icon: Eye },
     ],
   },
@@ -1150,6 +1159,7 @@ export default function AdminPage({ setActiveNav }) {
   });
   const [hovered, setHovered] = useState(null);
   const [canvasAction, setCanvasAction] = useState(null);
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const mainRef = useRef(null);
@@ -1160,6 +1170,7 @@ export default function AdminPage({ setActiveNav }) {
 
   const navigateToSection = (id) => {
     setActiveSection(id);
+    if (id !== 'nextiqGoals') setSelectedGoalId(null);
     if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     const allItems = Object.values(sectionDefinitions).flatMap((s) => s.items);
     const item = allItems.find((i) => i.id === id);
@@ -1284,7 +1295,17 @@ export default function AdminPage({ setActiveNav }) {
         />
       ) : (
         <main ref={mainRef} style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
-          {activeSection === 'actionsBuilder' ? (
+          {activeSection === 'nextiqEngine' ? (
+            <NextIQEngine onNavigateToGoal={(id) => { setSelectedGoalId(id); setActiveSection('nextiqGoals'); }} onNavigateToGoals={() => { setSelectedGoalId(null); setActiveSection('nextiqGoals'); }} />
+          ) : activeSection === 'nextiqGoals' && selectedGoalId ? (
+            <NextIQGoalDetail goalId={selectedGoalId} onBack={() => setSelectedGoalId(null)} />
+          ) : activeSection === 'nextiqGoals' ? (
+            <NextIQGoals onSelectGoal={(id) => setSelectedGoalId(id)} />
+          ) : activeSection === 'nextiqGuardrails' ? (
+            <NextIQGuardrails />
+          ) : activeSection === 'nextiqPlaybooks' ? (
+            <NextIQPlaybooks />
+          ) : activeSection === 'actionsBuilder' ? (
             <ActionsBuilder onOpenCanvas={(action) => setCanvasAction(action)} />
           ) : activeSection === 'coachingRules' ? (
             <CoachingRulesBuilder />
