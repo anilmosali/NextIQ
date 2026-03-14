@@ -1,228 +1,371 @@
 import { useState } from 'react';
 import theme from '../theme';
 import { useTheme } from '../context/ThemeContext';
-import { NextivaXLogo } from './NextivaLogo';
-import { inboxCounts } from '../data/contacts';
 import {
-  Home, Inbox, Video, Phone, Users, FileText, BarChart3,
-  Puzzle, Sparkles, Settings,
+  Home, Inbox, Phone, Video, Users, Building2, FileText,
+  BarChart3, Eye, Store, Settings, Menu,
 } from 'lucide-react';
 
-const navItems = [
-  { id: 'home', icon: Home },
-  { id: 'inbox', icon: Inbox, badge: inboxCounts.total },
-  { id: 'meetings', icon: Video, badge: 1 },
-  { id: 'calls', icon: Phone },
-  { id: 'contacts', icon: Users },
-  { id: 'tickets', icon: FileText, badge: 2 },
-  { id: 'analytics', icon: BarChart3 },
-  { id: 'integrations', icon: Puzzle },
-  { id: 'nextiq', icon: Sparkles },
+const navGroups = [
+  {
+    label: null,
+    items: [
+      { id: 'home', icon: Home, label: 'Home' },
+      { id: 'inbox', icon: Inbox, label: 'Inbox', badge: 11 },
+      { id: 'phone', icon: Phone, label: 'Phone' },
+      { id: 'meetings', icon: Video, label: 'Meetings' },
+    ],
+  },
+  {
+    label: 'MANAGE',
+    items: [
+      { id: 'contacts', icon: Users, label: 'Contacts' },
+      { id: 'accounts', icon: Building2, label: 'Accounts' },
+      { id: 'tickets', icon: FileText, label: 'Tickets', badge: 2 },
+    ],
+  },
+  {
+    label: 'TOOLS',
+    items: [
+      { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+      { id: 'supervisor', icon: Eye, label: 'Supervisor view' },
+    ],
+  },
 ];
 
-const labels = {
-  home: 'Home',
-  inbox: 'Inbox',
-  meetings: 'Meetings',
-  calls: 'Calls',
-  contacts: 'Contacts',
-  tickets: 'Tickets',
-  analytics: 'Analytics',
-  integrations: 'Integrations',
-  nextiq: 'Copilot',
-};
+const bottomItems = [
+  { id: 'marketplace', icon: Store, label: 'Marketplace' },
+  { id: 'admin', icon: Settings, label: 'Settings' },
+];
 
-export default function Sidebar({ activeNav, setActiveNav, onOpenHelp }) {
+const COLLAPSED_WIDTH = 56;
+const EXPANDED_WIDTH = 220;
+const HEADER_HEIGHT = 56;
+
+export default function Sidebar({ activeNav, setActiveNav, onOpenHelp, expanded, onToggleExpand }) {
   const [hoveredId, setHoveredId] = useState(null);
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
-  const isDark = themeMode === 'dark';
 
-  return (
-    <aside
-      style={{
-        width: '72px',
-        ...(isDark ? theme.glass.dark : theme.glass.light),
-        borderRight: `1px solid ${colors.border}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px 0',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 100,
-        boxShadow: isDark
-          ? '2px 0 16px rgba(0, 0, 0, 0.3)'
-          : '2px 0 16px rgba(11, 43, 74, 0.08)',
-        transition: `all ${theme.transitions.slow}`,
-      }}
-    >
-      {/* Logo */}
-      <button
-        onClick={() => setActiveNav('home')}
-        aria-label="Go to home"
-        style={{
-          marginBottom: '24px',
-          cursor: 'pointer',
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          outline: 'none',
-        }}
-      >
-        <NextivaXLogo size={28} />
-      </button>
+  const isExpanded = expanded;
+  const sidebarWidth = isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
 
-      {/* Main nav */}
-      <nav
-        role="navigation"
-        aria-label="Main navigation"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-          padding: '0 12px',
-          width: '100%',
-        }}
-      >
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeNav === item.id;
-          const isHovered = hoveredId === item.id && !isActive;
-          const label = labels[item.id] || item.id;
-          const badgeText = item.badge
-            ? `, ${item.badge} ${item.id === 'inbox' ? 'unread messages' : item.id === 'meetings' ? 'upcoming meetings' : 'items'}`
-            : '';
+  const iconBoxStyle = {
+    width: '24px',
+    minWidth: '24px',
+    maxWidth: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  };
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setHoveredId(null);
-                setActiveNav(item.id);
-              }}
-              onMouseEnter={() => setHoveredId(item.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              aria-label={`${label}${badgeText}`}
-              aria-current={isActive ? 'page' : undefined}
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: theme.radii.lg,
-                border: 'none',
-                backgroundColor: isActive
-                  ? theme.colors.blue
-                  : isHovered
-                    ? colors.sidebarHover
-                    : 'transparent',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                transition: 'background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
-                boxShadow: isActive ? '0 4px 12px rgba(0, 98, 184, 0.4)' : 'none',
-                transform: isActive || isHovered ? 'scale(1.02)' : 'scale(1)',
-                outline: 'none',
-              }}
-            >
-              <Icon
-                size={20}
-                color={isActive ? theme.colors.white : colors.textSecondary}
-              />
-              {item.badge && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    minWidth: '18px',
-                    height: '18px',
-                    padding: '0 5px',
-                    backgroundColor: isActive ? theme.colors.white : theme.colors.blue,
-                    borderRadius: theme.radii.full,
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: isActive ? theme.colors.blue : theme.colors.white,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+  const renderNavItem = (item) => {
+    const Icon = item.icon;
+    const isActive = activeNav === item.id;
+    const isHovered = hoveredId === item.id && !isActive;
 
-      {/* Bottom items */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px',
-        }}
-      >
-        {/* Settings */}
+    if (isExpanded) {
+      return (
         <button
-          aria-label="Settings"
-          onClick={() => setActiveNav('admin')}
-          onMouseEnter={() => setHoveredId('settings')}
+          key={item.id}
+          onClick={() => { setHoveredId(null); setActiveNav(item.id); }}
+          onMouseEnter={() => setHoveredId(item.id)}
           onMouseLeave={() => setHoveredId(null)}
+          aria-label={item.label}
+          aria-current={isActive ? 'page' : undefined}
           style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: theme.radii.md,
+            width: '100%',
+            height: '40px',
+            padding: '0 14px',
             border: 'none',
-            backgroundColor:
-              hoveredId === 'settings' ? colors.sidebarHover : 'transparent',
+            backgroundColor: isActive
+              ? 'rgba(0, 98, 184, 0.06)'
+              : isHovered ? colors.surfaceHover : 'transparent',
             cursor: 'pointer',
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: '24px 1fr auto',
+            gap: '12px',
             alignItems: 'center',
-            justifyContent: 'center',
-            transition: theme.transitions.fast,
+            borderRadius: theme.radii.md,
+            transition: 'background-color 0.15s ease',
             outline: 'none',
           }}
         >
-          <Settings size={20} color={colors.textSecondary} />
+          <div style={iconBoxStyle}>
+            <Icon
+              size={20}
+              color={isActive ? theme.colors.navy : colors.textSecondary}
+              strokeWidth={isActive ? 2 : 1.6}
+            />
+          </div>
+          <span
+            style={{
+              fontSize: '14px',
+              fontWeight: isActive ? 600 : 400,
+              color: isActive ? theme.colors.navy : colors.textSecondary,
+              fontFamily: theme.fonts.body,
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              textAlign: 'left',
+            }}
+          >
+            {item.label}
+          </span>
+          {item.badge ? (
+            <span
+              style={{
+                minWidth: '18px',
+                height: '18px',
+                padding: '0 5px',
+                backgroundColor: '#DC6868',
+                borderRadius: theme.radii.full,
+                fontSize: '10px',
+                fontWeight: 600,
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: 1,
+              }}
+            >
+              {item.badge}
+            </span>
+          ) : <span />}
         </button>
+      );
+    }
 
+    return (
+      <button
+        key={item.id}
+        onClick={() => { setHoveredId(null); setActiveNav(item.id); }}
+        onMouseEnter={() => setHoveredId(item.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        aria-label={item.label}
+        aria-current={isActive ? 'page' : undefined}
+        style={{
+          width: '100%',
+          height: '44px',
+          padding: '0',
+          border: 'none',
+          backgroundColor: isActive
+            ? 'rgba(0, 98, 184, 0.06)'
+            : isHovered ? colors.surfaceHover : 'transparent',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: theme.radii.md,
+          transition: 'background-color 0.15s ease',
+          outline: 'none',
+        }}
+      >
+        <div style={iconBoxStyle}>
+          <Icon
+            size={20}
+            color={isActive ? theme.colors.navy : colors.textSecondary}
+            strokeWidth={isActive ? 2 : 1.6}
+          />
+          {item.badge && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-7px',
+                minWidth: '14px',
+                height: '14px',
+                padding: '0 3px',
+                backgroundColor: '#DC6868',
+                borderRadius: theme.radii.full,
+                fontSize: '9px',
+                fontWeight: 600,
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: 1,
+              }}
+            >
+              {item.badge}
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  };
+
+  const dividerStyle = {
+    width: isExpanded ? 'calc(100% - 28px)' : '28px',
+    height: '1px',
+    backgroundColor: colors.border,
+    margin: isExpanded ? '4px auto' : '6px auto',
+    flexShrink: 0,
+  };
+
+  return (
+    <aside
+      role="navigation"
+      aria-label="Main navigation"
+      style={{
+        width: sidebarWidth,
+        backgroundColor: colors.surface,
+        borderRight: `1px solid ${colors.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        top: `${HEADER_HEIGHT}px`,
+        left: 0,
+        bottom: 0,
+        zIndex: 90,
+        transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Hamburger toggle */}
+      <div style={{
+        padding: isExpanded ? '14px 14px 6px' : '14px 0 6px',
+        width: '100%',
+        display: 'flex',
+        justifyContent: isExpanded ? 'flex-start' : 'center',
+      }}>
+        <button
+          onClick={onToggleExpand}
+          aria-label={isExpanded ? 'Collapse navigation' : 'Expand navigation'}
+          style={{
+            width: isExpanded ? '100%' : '40px',
+            height: '40px',
+            borderRadius: isExpanded ? theme.radii.lg : theme.radii.md,
+            border: isExpanded ? `1px solid ${colors.border}` : 'none',
+            backgroundColor: isExpanded ? colors.surfaceHover : 'transparent',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isExpanded ? 'flex-start' : 'center',
+            padding: isExpanded ? '0 12px' : '0',
+            outline: 'none',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            if (!isExpanded) e.currentTarget.style.backgroundColor = colors.surfaceHover;
+          }}
+          onMouseLeave={e => {
+            if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <Menu size={20} color={colors.textSecondary} />
+        </button>
+      </div>
+
+      {/* Navigation groups */}
+      <nav style={{
+        flex: 1,
+        width: '100%',
+        padding: isExpanded ? '0 10px' : '0 8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      }}>
+        {navGroups.map((group, gi) => (
+          <div key={gi}>
+            {gi > 0 && <div style={dividerStyle} />}
+            {isExpanded && group.label && (
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: colors.textSecondary,
+                letterSpacing: '0.8px',
+                padding: '10px 14px 6px',
+                fontFamily: theme.fonts.body,
+                opacity: 0.7,
+              }}>
+                {group.label}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+              {group.items.map(renderNavItem)}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Bottom section */}
+      <div style={{
+        width: '100%',
+        padding: isExpanded ? '0 10px 14px' : '0 8px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1px',
+      }}>
+        <div style={dividerStyle} />
+        {bottomItems.map(renderNavItem)}
         {/* Help */}
-        {onOpenHelp && (
+        {isExpanded ? (
           <button
-            type="button"
             onClick={onOpenHelp}
             onMouseEnter={() => setHoveredId('help')}
             onMouseLeave={() => setHoveredId(null)}
-            aria-label="Get help"
+            aria-label="Help"
             style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: theme.radii.md,
+              width: '100%',
+              height: '40px',
+              padding: '0 14px',
               border: 'none',
-              backgroundColor:
-                hoveredId === 'help' ? colors.sidebarHover : 'transparent',
+              backgroundColor: hoveredId === 'help' ? colors.surfaceHover : 'transparent',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'grid',
+              gridTemplateColumns: '24px 1fr auto',
+              gap: '12px',
               alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.2s ease, transform 0.2s ease',
-              transform: hoveredId === 'help' ? 'scale(1.02)' : 'scale(1)',
+              borderRadius: theme.radii.md,
+              transition: 'background-color 0.15s ease',
               outline: 'none',
             }}
           >
-            <span style={{ fontSize: '22px', lineHeight: 1 }} aria-hidden>
-              👋
-            </span>
+            <span style={{ ...iconBoxStyle, position: 'static', fontSize: '18px', lineHeight: 1 }}>👋</span>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: 400,
+              color: colors.textSecondary,
+              fontFamily: theme.fonts.body,
+              textAlign: 'left',
+            }}>Help</span>
+            <span />
+          </button>
+        ) : (
+          <button
+            onClick={onOpenHelp}
+            onMouseEnter={() => setHoveredId('help')}
+            onMouseLeave={() => setHoveredId(null)}
+            aria-label="Help"
+            style={{
+              width: '100%',
+              height: '44px',
+              padding: '0',
+              border: 'none',
+              backgroundColor: hoveredId === 'help' ? colors.surfaceHover : 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: theme.radii.md,
+              transition: 'background-color 0.15s ease',
+              outline: 'none',
+            }}
+          >
+            <span style={{ ...iconBoxStyle, position: 'static', fontSize: '18px', lineHeight: 1 }}>👋</span>
           </button>
         )}
       </div>
     </aside>
   );
 }
+
+export { COLLAPSED_WIDTH, EXPANDED_WIDTH, HEADER_HEIGHT };

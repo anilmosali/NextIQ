@@ -12,57 +12,96 @@ import {
   Bot, ArrowRight, Copy, Edit3, ThumbsUp, ThumbsDown, RotateCcw,
   BookOpen, ArrowUpRight, CircleDot, Brain, Cpu, TrendingUp,
   Calendar, MapPin, ExternalLink, Tag, Building, Globe, PlayCircle, Reply,
+  Info, LayoutGrid, Hash, PhoneIncoming, PhoneOutgoing, MonitorSmartphone,
+  Facebook, Instagram, MessageCircle,
 } from 'lucide-react';
 
 /* ═══ DATA ═══ */
 const inboxConversations = [
+  // Customers
   {
-    id: 1, name: 'Brad Pitt', initials: 'BP', time: '2m',
+    id: 1, name: 'Brad Pitt', initials: 'BP', time: '5m', type: 'customer',
     gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
     tags: [
       { label: 'VIP', color: theme.colors.warning, bg: theme.colors.warningMuted },
       { label: 'At risk', color: theme.colors.error, bg: theme.colors.errorMuted },
     ],
-    preview: 'We were charged twice for our February invoice. Can you look into it?', channel: 'chat', status: 'online',
+    preview: 'We were charged twice for our February invoice. Can you look into it?', channel: 'chat', channelLabel: 'Direct Message', status: 'online', unread: true,
+  },
+  // Channel
+  {
+    id: 101, name: '#general', time: '1h', type: 'channel',
+    gradient: 'linear-gradient(135deg, #0D9488, #14B8A6)', channelColor: '#0D9488',
+    tags: [], preview: 'Morning huddle notes posted. New Bronco and BMW inventory arriving this week. Saturday test drives scheduled.', channel: 'channel', channelLabel: '# Channel', status: null, unread: false,
+  },
+  // Channel
+  {
+    id: 102, name: '#fleet-deals', time: '20m', type: 'channel',
+    gradient: 'linear-gradient(135deg, #E8A23E, #D97706)', channelColor: '#E8A23E',
+    tags: [], preview: 'Okafor Logistics 6-van order confirmed. Patel Hotels EV shuttle deal progressing. Two fleet leads from website this week.', channel: 'channel', channelLabel: '# Channel', status: null, unread: false,
+  },
+  // Channel
+  {
+    id: 103, name: '#sales-floor', time: '15m', type: 'channel',
+    gradient: 'linear-gradient(135deg, #3B82F6, #2563EB)', channelColor: '#3B82F6',
+    tags: [], preview: 'Huddle started -- discussing the Kowalski fleet warranty escalation strategy.', channel: 'channel', channelLabel: '# Channel', status: null, unread: true,
   },
   {
-    id: 2, name: 'Michael Torres', initials: 'MT', time: '1h',
+    id: 2, name: 'Michael Torres', initials: 'MT', time: '1h', type: 'customer',
     gradient: 'linear-gradient(135deg, #14B8A6, #0D9488)',
-    tags: [], preview: 'Can you walk me through the differences and pricing?', channel: 'email', status: 'away',
+    tags: [], preview: 'Can you walk me through the differences and pricing?', channel: 'email', channelLabel: 'Email', status: 'away', unread: true,
   },
   {
-    id: 3, name: 'Emily Davis', initials: 'ED', time: '3h',
+    id: 3, name: 'Emily Davis', initials: 'ED', time: '3h', type: 'customer',
     gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
     tags: [],
-    preview: "I've been trying to reset my password but keep getting an error.", channel: 'phone', status: 'online',
+    preview: "I've been trying to reset my password but keep getting an error.", channel: 'phone', channelLabel: 'SMS', status: 'online', unread: true,
   },
   {
-    id: 4, name: 'David Kim', initials: 'DK', time: '4h',
+    id: 4, name: 'David Kim', initials: 'DK', time: '4h', type: 'customer',
     gradient: 'linear-gradient(135deg, #10B981, #059669)',
     tags: [{ label: 'Technical', color: theme.colors.blue, bg: theme.colors.blueMuted }],
-    preview: "We're getting intermittent 429 rate limit errors during peak hours...", channel: 'chat', status: 'offline',
+    preview: "We're getting intermittent 429 rate limit errors during peak hours...", channel: 'chat', channelLabel: 'Direct Message', status: 'offline', unread: false,
+  },
+  // Internal
+  {
+    id: 201, name: 'Sarah Chen', initials: 'SC', time: '30m', type: 'internal',
+    gradient: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+    tags: [], preview: 'Can you review the Kowalski escalation before the 3pm call? I drafted the response.', channel: 'chat', channelLabel: 'Internal', status: 'online', unread: true,
+  },
+  // Internal
+  {
+    id: 202, name: 'James Wilson', initials: 'JW', time: '2h', type: 'internal',
+    gradient: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+    tags: [], preview: 'FYI - I reassigned the Bradley ticket to you. He asked for a senior agent.', channel: 'chat', channelLabel: 'Internal', status: 'offline', unread: false,
   },
   {
-    id: 5, name: 'Rachel Martinez', initials: 'RM', time: '1d',
+    id: 5, name: 'Rachel Martinez', initials: 'RM', time: '1d', type: 'customer',
     gradient: 'linear-gradient(135deg, #EC4899, #DB2777)',
     tags: [{ label: 'New Lead', color: theme.colors.success, bg: theme.colors.successMuted }],
-    preview: 'Can you tell me about the onboarding process?', channel: 'sms', status: 'online',
+    preview: 'Can you tell me about the onboarding process?', channel: 'sms', channelLabel: 'SMS', status: 'online', unread: false,
   },
   {
-    id: 6, name: 'Tom Bradley', initials: 'TB', time: '2d',
+    id: 6, name: 'Tom Bradley', initials: 'TB', time: '2d', type: 'customer',
     gradient: 'linear-gradient(135deg, #0062B8, #004580)',
     tags: [
       { label: 'VIP', color: theme.colors.warning, bg: theme.colors.warningMuted },
       { label: 'At risk', color: theme.colors.error, bg: theme.colors.errorMuted },
       { label: 'Critical', color: theme.colors.error, bg: theme.colors.errorMuted },
     ],
-    preview: 'I need this resolved NOW and I want to know what went wrong.', channel: 'email', status: 'offline',
+    preview: 'I need this resolved NOW and I want to know what went wrong.', channel: 'email', channelLabel: 'Email', status: 'offline', unread: false,
   },
   {
-    id: 7, name: 'Amanda Foster', initials: 'AF', time: '3d',
+    id: 7, name: 'Amanda Foster', initials: 'AF', time: '3d', type: 'customer',
     gradient: 'linear-gradient(135deg, #14B8A6, #0D9488)',
     tags: [{ label: 'Expanding', color: theme.colors.success, bg: theme.colors.successMuted }],
-    preview: 'We need separate call routing per site but unified reporting.', channel: 'chat', status: 'online',
+    preview: 'We need separate call routing per site but unified reporting.', channel: 'chat', channelLabel: 'Direct Message', status: 'online', unread: false,
+  },
+  // Channel
+  {
+    id: 104, name: '#support-escalations', time: '45m', type: 'channel',
+    gradient: 'linear-gradient(135deg, #EF4444, #DC2626)', channelColor: '#EF4444',
+    tags: [], preview: 'Bradley case flagged as P1. Need approval for service credit by EOD.', channel: 'channel', channelLabel: '# Channel', status: null, unread: true,
   },
 ];
 
@@ -1365,9 +1404,9 @@ function getCustomerContext(conversation) {
 }
 
 const teams = [
-  { id: 'sales', name: 'Sales Team', letter: 'S', color: theme.colors.success, badge: 4, members: '3 members' },
-  { id: 'support', name: 'Customer ...', letter: 'C', color: theme.colors.blue, badge: 6, members: '5 members' },
-  { id: 'vip', name: 'VIP Accounts', letter: 'V', color: theme.colors.purple, badge: 3, members: '2 members' },
+  { id: 'sales', name: 'Sales', emoji: '💰', badge: 2, members: '3 members' },
+  { id: 'service', name: 'Service', emoji: '😊', badge: 0, members: '3 members' },
+  { id: 'marketing', name: 'Marketing', emoji: '📣', badge: 1, members: '2 members' },
 ];
 
 /* ═══ SUB-COMPONENTS ═══ */
@@ -1376,374 +1415,631 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [hovered, setHovered] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [myInboxOpen, setMyInboxOpen] = useState(true);
+  const [teamInboxOpen, setTeamInboxOpen] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const collapsedWidth = 48;
-  const expandedWidth = 180;
+  const contactsBadge = inboxConversations.filter(c => c.type === 'customer' && c.unread).length;
+  const internalBadge = inboxConversations.filter(c => (c.type === 'internal' || c.type === 'channel') && c.unread).length;
 
-  return (
-    <div
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      style={{
-        width: expanded ? `${expandedWidth}px` : `${collapsedWidth}px`,
-        minWidth: expanded ? `${expandedWidth}px` : `${collapsedWidth}px`,
-        flexShrink: 0,
+  const teamColors = {
+    sales: '#3B6EB5',
+    service: '#3B6EB5',
+    marketing: '#9B2C3C',
+  };
+
+  const navItem = (id, label, Icon, badge) => {
+    const isActive = activeInbox === id;
+    const isHover = hovered === id;
+    return (
+      <button
+        key={id}
+        onClick={() => setActiveInbox(id)}
+        onMouseEnter={() => setHovered(id)}
+        onMouseLeave={() => setHovered(null)}
+        style={{
+          width: '100%', padding: '9px 12px',
+          border: 'none', borderRadius: '8px',
+          backgroundColor: isActive ? theme.colors.blueMuted : isHover ? colors.surfaceHover : 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+          fontFamily: theme.fonts.body, fontSize: '14px',
+          fontWeight: isActive ? 600 : 400,
+          color: isActive ? theme.colors.blue : colors.text,
+          transition: 'background-color 0.15s ease',
+          textAlign: 'left',
+        }}
+      >
+        <Icon size={18} color={isActive ? theme.colors.blue : colors.textSecondary} />
+        <span style={{ flex: 1 }}>{label}</span>
+        {badge > 0 && (
+          <span style={{
+            minWidth: '20px', height: '20px', padding: '0 5px',
+            backgroundColor: '#DC6868', borderRadius: theme.radii.full,
+            fontSize: '11px', fontWeight: 600, color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{badge}</span>
+        )}
+      </button>
+    );
+  };
+
+  if (collapsed) {
+    return (
+      <div style={{
+        width: '52px', minWidth: '52px', flexShrink: 0,
         borderRight: `1px solid ${colors.border}`,
         backgroundColor: colors.surface,
-        display: 'flex', flexDirection: 'column',
-        padding: '12px 0',
-        overflow: 'hidden',
-        transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        position: 'relative', zIndex: 5,
-      }}
-    >
-      {/* Expand indicator */}
-      {!expanded && (
-        <div style={{
-          position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)',
-          width: '3px', height: '24px', borderRadius: '3px 0 0 3px',
-          backgroundColor: theme.colors.blue + '30',
-        }} />
-      )}
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '12px 0', gap: '6px', overflow: 'hidden',
+        transition: 'width 0.2s ease',
+      }}>
+        <button
+          onClick={() => setCollapsed(false)}
+          style={{
+            border: 'none', backgroundColor: colors.surfaceHover, cursor: 'pointer',
+            padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', color: colors.textSecondary, marginBottom: '6px',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.divider; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = colors.surfaceHover; }}
+        >
+          <LayoutGrid size={16} />
+        </button>
 
-      {[
-        { id: 'my-inbox', label: 'My Inbox', icon: Inbox, badge: 3 },
-        { id: 'all-activity', label: 'All Activity', icon: Activity },
-      ].map((item) => {
-        const isActive = activeInbox === item.id;
-        return (
+        {/* Contacts icon */}
+        <button
+          onClick={() => setActiveInbox('contacts')}
+          title="Contacts"
+          style={{
+            position: 'relative', border: 'none', cursor: 'pointer', padding: 0,
+            width: '36px', height: '36px', borderRadius: '8px',
+            backgroundColor: activeInbox === 'contacts' ? '#1A6FB5' : '#2A8FC7',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'transform 0.15s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        >
+          <Users size={18} color="#fff" />
+          {contactsBadge > 0 && (
+            <span style={{
+              position: 'absolute', top: '-4px', right: '-4px',
+              minWidth: '16px', height: '16px', padding: '0 4px',
+              backgroundColor: '#DC6868', borderRadius: '8px',
+              fontSize: '9px', fontWeight: 700, color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `2px solid ${colors.surface}`,
+            }}>{contactsBadge}</span>
+          )}
+        </button>
+
+        {/* Internal icon */}
+        <button
+          onClick={() => setActiveInbox('internal')}
+          title="Internal"
+          style={{
+            position: 'relative', border: 'none', cursor: 'pointer', padding: 0,
+            width: '36px', height: '36px', borderRadius: '8px',
+            backgroundColor: activeInbox === 'internal' ? '#1A6FB5' : '#6366F1',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'transform 0.15s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        >
+          <MessageSquare size={18} color="#fff" />
+          {internalBadge > 0 && (
+            <span style={{
+              position: 'absolute', top: '-4px', right: '-4px',
+              minWidth: '16px', height: '16px', padding: '0 4px',
+              backgroundColor: '#DC6868', borderRadius: '8px',
+              fontSize: '9px', fontWeight: 700, color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `2px solid ${colors.surface}`,
+            }}>{internalBadge}</span>
+          )}
+        </button>
+
+        {/* Team icons */}
+        {teams.map((team) => (
           <button
-            key={item.id}
-            onClick={() => setActiveInbox(item.id)}
-            onMouseEnter={() => setHovered(item.id)}
-            onMouseLeave={() => setHovered(null)}
-            title={!expanded ? item.label : undefined}
+            key={team.id}
+            onClick={() => setActiveInbox(team.id)}
+            title={team.name}
             style={{
-              width: '100%',
-              padding: expanded ? '8px 12px' : '8px 0',
-              border: 'none',
-              backgroundColor: isActive ? colors.sidebarActive
-                : hovered === item.id ? colors.sidebarHover : 'transparent',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center',
-              gap: '8px',
-              justifyContent: expanded ? 'flex-start' : 'center',
-              fontFamily: theme.fonts.body, fontSize: '13px',
-              fontWeight: isActive ? 600 : 500,
-              color: isActive ? theme.colors.blue : colors.text,
-              transition: 'background-color 0.15s ease, padding 0.2s ease',
-              textAlign: 'left',
-              borderLeft: isActive ? `3px solid ${theme.colors.blue}` : '3px solid transparent',
-              position: 'relative',
+              position: 'relative', border: 'none', cursor: 'pointer', padding: 0,
+              width: '36px', height: '36px', borderRadius: '8px',
+              backgroundColor: teamColors[team.id] || '#3B6EB5',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '15px', fontWeight: 700, color: '#fff',
+              fontFamily: theme.fonts.heading,
+              transition: 'transform 0.15s ease',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           >
-            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-              <item.icon size={18} color={isActive ? theme.colors.blue : colors.textSecondary} />
-              {item.badge && !expanded && (
-                <span style={{
-                  position: 'absolute', top: '-6px', right: '-8px',
-                  minWidth: '16px', height: '16px', padding: '0 4px',
-                  backgroundColor: theme.colors.blue, borderRadius: theme.radii.full,
-                  fontSize: '9px', fontWeight: 700, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `2px solid ${colors.surface}`,
-                }}>{item.badge}</span>
-              )}
-            </div>
-            {expanded && (
-              <>
-                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}>{item.label}</span>
-                {item.badge && (
-                  <span style={{
-                    minWidth: '20px', height: '20px', padding: '0 6px',
-                    backgroundColor: theme.colors.blue, borderRadius: theme.radii.full,
-                    fontSize: '11px', fontWeight: 700, color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{item.badge}</span>
-                )}
-              </>
+            {team.name.charAt(0)}
+            {team.badge > 0 && (
+              <span style={{
+                position: 'absolute', top: '-4px', right: '-4px',
+                minWidth: '16px', height: '16px', padding: '0 4px',
+                backgroundColor: '#DC6868', borderRadius: '8px',
+                fontSize: '9px', fontWeight: 700, color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: `2px solid ${colors.surface}`,
+              }}>{team.badge}</span>
             )}
           </button>
-        );
-      })}
+        ))}
 
-      <div style={{ height: '1px', backgroundColor: colors.border, margin: '10px 0' }} />
+        <button
+          title="Create team"
+          style={{
+            border: 'none', cursor: 'pointer', padding: 0,
+            width: '36px', height: '36px', borderRadius: '8px',
+            backgroundColor: 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: theme.colors.blue, transition: 'background-color 0.15s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.surfaceHover; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        >
+          <Plus size={18} />
+        </button>
+      </div>
+    );
+  }
 
-      {expanded && (
-        <div style={{ padding: '0 12px', marginBottom: '6px' }}>
-          <span style={{
-            fontSize: '10px', fontWeight: 700, color: colors.textTertiary,
-            textTransform: 'uppercase', letterSpacing: '0.5px',
-          }}>Teams</span>
+  return (
+    <div style={{
+      width: '210px', minWidth: '210px', flexShrink: 0,
+      borderRight: `1px solid ${colors.border}`,
+      backgroundColor: colors.surface,
+      display: 'flex', flexDirection: 'column',
+      padding: '14px 10px', overflow: 'hidden',
+      transition: 'width 0.2s ease',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 6px 16px',
+      }}>
+        <span style={{
+          fontSize: '16px', fontWeight: 700, color: colors.text, fontFamily: theme.fonts.heading,
+        }}>Inbox</span>
+        <button
+          onClick={() => setCollapsed(true)}
+          style={{
+            border: 'none', backgroundColor: colors.surfaceHover, cursor: 'pointer',
+            padding: '5px', borderRadius: '6px', display: 'flex', alignItems: 'center',
+            color: colors.textSecondary,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.divider; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = colors.surfaceHover; }}
+        >
+          <LayoutGrid size={15} />
+        </button>
+      </div>
+
+      {/* MY INBOX section header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 6px', marginBottom: '8px',
+      }}>
+        <button
+          onClick={() => setMyInboxOpen(!myInboxOpen)}
+          style={{
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '5px',
+            fontFamily: theme.fonts.body, fontSize: '11px', fontWeight: 700,
+            color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.5px',
+            padding: '2px 0',
+          }}
+        >
+          {myInboxOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          My Inbox
+        </button>
+      </div>
+
+      {myInboxOpen && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {navItem('contacts', 'Contacts', Users, contactsBadge)}
+          {navItem('internal', 'Internal', MessageSquare, internalBadge)}
         </div>
       )}
 
-      {teams.map((team) => (
+      {/* Team Inboxes section header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 6px', marginTop: '20px', marginBottom: '8px',
+      }}>
         <button
-          key={team.id}
-          onMouseEnter={() => setHovered(team.id)}
-          onMouseLeave={() => setHovered(null)}
-          title={!expanded ? team.name : undefined}
+          onClick={() => setTeamInboxOpen(!teamInboxOpen)}
           style={{
-            width: '100%',
-            padding: expanded ? '6px 12px' : '6px 0',
-            border: 'none',
-            backgroundColor: hovered === team.id ? colors.sidebarHover : 'transparent',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center',
-            gap: '8px',
-            justifyContent: expanded ? 'flex-start' : 'center',
-            fontFamily: theme.fonts.body,
-            transition: 'background-color 0.15s ease, padding 0.2s ease',
-            textAlign: 'left',
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '5px',
+            fontFamily: theme.fonts.body, fontSize: '11px', fontWeight: 700,
+            color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.5px',
+            padding: '2px 0',
           }}
         >
-          <div style={{
-            width: '26px', height: '26px', borderRadius: theme.radii.md,
-            backgroundColor: team.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '11px', fontWeight: 700, color: '#fff', flexShrink: 0,
-          }}>{team.letter}</div>
-          {expanded && (
-            <>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '12px', fontWeight: 500, color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{team.name}</div>
-              </div>
-              <span style={{
-                minWidth: '18px', height: '18px', padding: '0 5px',
-                backgroundColor: colors.surfaceHover, borderRadius: theme.radii.full,
-                fontSize: '10px', fontWeight: 600, color: colors.textSecondary,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{team.badge}</span>
-            </>
-          )}
+          {teamInboxOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          Team Inboxes
         </button>
-      ))}
+      </div>
 
-      {expanded && (
-        <button
-          onMouseEnter={() => setHovered('create')}
-          onMouseLeave={() => setHovered(null)}
-          style={{
-            width: '100%', padding: '6px 12px', border: 'none',
-            backgroundColor: hovered === 'create' ? colors.sidebarHover : 'transparent',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-            fontFamily: theme.fonts.body, fontSize: '12px', fontWeight: 500,
-            color: theme.colors.blue, transition: theme.transitions.fast, textAlign: 'left',
-            marginTop: '4px',
-          }}
-        >
-          <Plus size={14} /> Create team
-        </button>
+      {teamInboxOpen && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {teams.map((team) => {
+            const isActive = activeInbox === team.id;
+            const isHover = hovered === team.id;
+            return (
+              <button
+                key={team.id}
+                onClick={() => setActiveInbox(team.id)}
+                onMouseEnter={() => setHovered(team.id)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  width: '100%', padding: '7px 12px',
+                  border: 'none', borderRadius: '8px',
+                  backgroundColor: isActive ? theme.colors.blueMuted : isHover ? colors.surfaceHover : 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                  fontFamily: theme.fonts.body, transition: 'background-color 0.15s ease',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: '18px', lineHeight: 1 }}>{team.emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: '14px', fontWeight: isActive ? 600 : 400,
+                    color: isActive ? theme.colors.blue : colors.text,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{team.name}</div>
+                  <div style={{
+                    fontSize: '11px', color: colors.textTertiary,
+                    display: 'flex', alignItems: 'center', gap: '3px',
+                  }}>
+                    <Users size={10} />{team.members}
+                  </div>
+                </div>
+                {team.badge > 0 && (
+                  <span style={{
+                    minWidth: '20px', height: '20px', padding: '0 5px',
+                    backgroundColor: '#DC6868', borderRadius: theme.radii.full,
+                    fontSize: '11px', fontWeight: 600, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{team.badge}</span>
+                )}
+              </button>
+            );
+          })}
+
+          <button
+            onMouseEnter={() => setHovered('create')}
+            onMouseLeave={() => setHovered(null)}
+            style={{
+              width: '100%', padding: '8px 12px', border: 'none', borderRadius: '8px',
+              backgroundColor: hovered === 'create' ? colors.surfaceHover : 'transparent',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+              fontFamily: theme.fonts.body, fontSize: '13px', fontWeight: 500,
+              color: theme.colors.blue, transition: 'background-color 0.15s ease',
+              textAlign: 'left', marginTop: '4px',
+            }}
+          >
+            <Plus size={15} /> Create team
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-function ConversationList({ selected, setSelected, activeLayout, setActiveLayout }) {
+function ConversationList({ selected, setSelected, activeLayout, setActiveLayout, activeInbox, compact }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const [hovered, setHovered] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [showViewMenu, setShowViewMenu] = useState(false);
-  const viewMenuRef = useRef(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [showChannelFilter, setShowChannelFilter] = useState(false);
+  const channelFilterRef = useRef(null);
 
-  const layouts = ['Classic', 'Simple', 'Focus', 'Journal'];
+  useEffect(() => { setActiveTab('all'); }, [activeInbox]);
 
   useEffect(() => {
     const handler = (e) => {
-      if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) setShowViewMenu(false);
+      if (channelFilterRef.current && !channelFilterRef.current.contains(e.target)) setShowChannelFilter(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const filters = [
-    { id: 'all', label: 'All', count: 7, color: theme.colors.blue, filled: true },
-    { id: 'high-risk', label: 'High Risk', count: 2, dotColor: theme.colors.error },
-    { id: 'vip', label: 'VIP', count: 3, dotColor: theme.colors.warning },
-    { id: 'new', label: 'New', count: 2, dotColor: theme.colors.success },
-    { id: 'urgent', label: 'Urgent' },
-    { id: 'more', label: 'More', hasChevron: true },
+  const channelFilters = [
+    { id: 'all-channels', label: 'All Channels', count: 48, Icon: MessageSquare },
+    { id: 'live-chat', label: 'Live Chat', count: 5, Icon: MessageSquare },
+    { id: 'email', label: 'Email', count: 6, Icon: Mail },
+    { id: 'sms', label: 'SMS', count: 3, Icon: MessageCircle },
+    { id: 'inbound-call', label: 'Inbound Call', count: 5, Icon: PhoneIncoming },
+    { id: 'outbound-call', label: 'Outbound Call', count: 4, Icon: PhoneOutgoing },
+    { id: 'video', label: 'Video', count: 2, Icon: MonitorSmartphone },
+    { id: 'whatsapp', label: 'WhatsApp', count: 5, Icon: MessageCircle },
+    { id: 'facebook', label: 'Facebook', count: 3, Icon: Facebook },
+    { id: 'instagram', label: 'Instagram', count: 3, Icon: Instagram },
+    { id: 'messenger', label: 'Messenger', count: 3, Icon: MessageCircle },
   ];
 
-  const currentLabel = layouts.find((l) => l.toLowerCase() === activeLayout) || 'Classic';
+  const isInternal = activeInbox === 'internal';
+  const sectionTitle = isInternal ? 'All Internal' : 'Contacts';
+
+  const baseConversations = isInternal
+    ? inboxConversations.filter(c => c.type === 'internal' || c.type === 'channel')
+    : inboxConversations.filter(c => c.type === 'customer');
+
+  const totalCount = baseConversations.length;
+  const unreadCount = baseConversations.filter(c => c.unread).length;
+
+  const tabs = [
+    { id: 'all', label: 'All', count: totalCount, Icon: Inbox },
+    { id: 'unread', label: 'Unread', count: unreadCount, Icon: Mail },
+  ];
+
+  const filteredConversations = activeTab === 'unread'
+    ? baseConversations.filter(c => c.unread)
+    : baseConversations;
+
+  if (compact) {
+    return (
+      <div style={{
+        width: '280px', minWidth: '280px', maxWidth: '280px', flexShrink: 0,
+        backgroundColor: colors.backgroundAlt || '#F9F4EF', display: 'flex', flexDirection: 'column',
+        overflow: 'hidden', borderRight: `1px solid ${colors.border}`,
+        transition: 'width 0.2s ease',
+      }}>
+        <div style={{
+          padding: '10px 14px',
+          borderBottom: `1px solid ${colors.divider}`,
+          backgroundColor: '#fff',
+          display: 'flex', alignItems: 'center', gap: '8px',
+        }}>
+          <h2 style={{
+            fontFamily: theme.fonts.heading, fontSize: '14px', fontWeight: 700,
+            color: colors.text, margin: 0, whiteSpace: 'nowrap',
+          }}>{sectionTitle}</h2>
+          <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+            {[
+              { id: 'all', label: 'All', count: totalCount },
+              { id: 'unread', label: 'Unread', count: unreadCount },
+            ].map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    padding: '3px 10px', borderRadius: theme.radii.full,
+                    border: 'none',
+                    backgroundColor: isActive ? '#1B7D5A' : 'transparent',
+                    fontSize: '11px', fontWeight: isActive ? 600 : 500,
+                    fontFamily: theme.fonts.body,
+                    color: isActive ? '#fff' : colors.textSecondary,
+                    cursor: 'pointer', transition: theme.transitions.fast,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {t.label} <span style={{ fontWeight: 600 }}>{t.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px' }}>
+          {filteredConversations.map((conv) => {
+            const isSelected = selected?.id === conv.id;
+            const isHover = hovered === conv.id;
+            const isChannel = conv.type === 'channel';
+            return (
+              <div
+                key={conv.id}
+                onClick={() => setSelected(conv)}
+                onMouseEnter={() => setHovered(conv.id)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  backgroundColor: isSelected ? '#FFF7ED' : isHover ? '#FAFAF9' : '#fff',
+                  transition: theme.transitions.fast,
+                  borderLeft: isSelected ? '3px solid #E8A23E' : '3px solid transparent',
+                  borderRadius: '8px',
+                  marginBottom: '3px',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                }}
+              >
+                {conv.unread && (
+                  <div style={{
+                    width: '6px', height: '6px', borderRadius: '50%',
+                    backgroundColor: theme.colors.blue, flexShrink: 0,
+                  }} />
+                )}
+                {!conv.unread && <div style={{ width: '6px', flexShrink: 0 }} />}
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  {(() => {
+                    const channelIconMap = {
+                      chat: { Icon: MessageSquare, color: '#0D9488' },
+                      email: { Icon: Mail, color: '#E8A23E' },
+                      sms: { Icon: Phone, color: '#6366F1' },
+                      phone: { Icon: Phone, color: '#22C55E' },
+                      channel: { Icon: Hash, color: conv.channelColor || '#0D9488' },
+                    };
+                    const ch = channelIconMap[conv.channel] || { Icon: MessageSquare, color: '#6B7280' };
+                    return (
+                      <div style={{
+                        width: '32px', height: '32px', borderRadius: isChannel ? '8px' : '50%',
+                        backgroundColor: ch.color,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <ch.Icon size={16} color="#fff" strokeWidth={2} />
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: '13px', fontWeight: isSelected ? 600 : conv.unread ? 600 : 500,
+                    color: colors.text,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{conv.name}</div>
+                  <p style={{
+                    fontSize: '11px', color: colors.textTertiary, margin: 0,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{conv.preview}</p>
+                </div>
+                <span style={{
+                  fontSize: '10px', color: conv.unread ? '#E8A23E' : colors.textTertiary,
+                  flexShrink: 0,
+                }}>{conv.time}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
-      width: '260px', minWidth: '260px', flexShrink: 0,
-      borderRight: `1px solid ${colors.border}`,
-      backgroundColor: colors.background, display: 'flex', flexDirection: 'column',
+      flex: 1, minWidth: 0,
+      backgroundColor: colors.backgroundAlt || '#F9F4EF', display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Header */}
-      <div style={{ padding: '16px 16px 12px' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: '12px',
-        }}>
-          <h2 style={{
-            fontFamily: theme.fonts.heading, fontSize: '18px', fontWeight: 700,
-            color: colors.text, margin: 0,
-          }}>My Inbox</h2>
+      {/* Header: title + tabs + actions */}
+      <div style={{
+        padding: '12px 16px',
+        borderBottom: `1px solid ${colors.divider}`,
+        display: 'flex', alignItems: 'center', gap: '12px',
+        backgroundColor: '#fff',
+      }}>
+        <h2 style={{
+          fontFamily: theme.fonts.heading, fontSize: '16px', fontWeight: 700,
+          color: colors.text, margin: 0, whiteSpace: 'nowrap', flexShrink: 0,
+        }}>{sectionTitle}</h2>
 
-          {/* View switcher */}
-          <div style={{ position: 'relative' }} ref={viewMenuRef}>
+        {/* Filter tabs */}
+        <div style={{ display: 'flex', gap: '2px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '5px 12px', borderRadius: theme.radii.full,
+                  border: 'none',
+                  backgroundColor: isActive ? '#1B7D5A' : 'transparent',
+                  fontSize: '13px', fontWeight: isActive ? 600 : 500,
+                  fontFamily: theme.fonts.body,
+                  color: isActive ? '#fff' : colors.textSecondary,
+                  cursor: 'pointer', transition: theme.transitions.fast,
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}
+              >
+                <tab.Icon size={13} />
+                {tab.label}
+                <span style={{ fontWeight: 600 }}>{tab.count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Channel filter + Search + New */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {/* Channel filter dropdown */}
+          <div style={{ position: 'relative' }} ref={channelFilterRef}>
             <button
-              onClick={() => setShowViewMenu(!showViewMenu)}
+              onClick={() => setShowChannelFilter(!showChannelFilter)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '4px 10px', borderRadius: theme.radii.full,
-                border: `1px solid ${showViewMenu ? theme.colors.blue + '40' : colors.border}`,
-                backgroundColor: showViewMenu ? theme.colors.blueMuted : 'transparent',
-                fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
-                color: showViewMenu ? theme.colors.blue : colors.textSecondary,
-                cursor: 'pointer', transition: theme.transitions.fast,
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={(e) => {
-                if (!showViewMenu) {
-                  e.currentTarget.style.borderColor = theme.colors.gray300;
-                  e.currentTarget.style.backgroundColor = colors.surfaceHover;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!showViewMenu) {
-                  e.currentTarget.style.borderColor = colors.border;
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
+                padding: '5px 10px', borderRadius: '8px',
+                border: `1px solid ${showChannelFilter ? colors.text : colors.border}`,
+                backgroundColor: showChannelFilter ? colors.surfaceHover : 'transparent',
+                cursor: 'pointer', color: colors.text,
+                transition: theme.transitions.fast,
               }}
             >
-              {currentLabel}
-              <ChevronDown size={10} style={{
-                transform: showViewMenu ? 'rotate(180deg)' : 'rotate(0)',
+              <MessageSquare size={15} />
+              <ChevronDown size={12} style={{
+                transform: showChannelFilter ? 'rotate(180deg)' : 'none',
                 transition: 'transform 0.2s ease',
               }} />
             </button>
-            {showViewMenu && (
+
+            {showChannelFilter && (
               <div style={{
-                position: 'absolute', top: 'calc(100% + 4px)', right: 0,
-                width: '140px', backgroundColor: theme.colors.white,
-                borderRadius: theme.radii.lg,
-                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04)',
-                zIndex: 1000, overflow: 'hidden', padding: '4px',
-                animation: 'fadeIn 0.12s ease',
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                width: '260px', backgroundColor: '#fff',
+                borderRadius: '12px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+                zIndex: 1000, padding: '6px', overflow: 'hidden',
               }}>
-                {layouts.map((l) => {
-                  const isActive = activeLayout === l.toLowerCase();
+                {channelFilters.map((ch, idx) => {
+                  const isFirst = idx === 0;
                   return (
                     <button
-                      key={l}
-                      onClick={() => { setActiveLayout(l.toLowerCase()); setShowViewMenu(false); }}
+                      key={ch.id}
+                      onClick={() => setShowChannelFilter(false)}
                       style={{
-                        width: '100%', padding: '8px 12px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        border: 'none', borderRadius: theme.radii.md,
-                        backgroundColor: isActive ? theme.colors.blueMuted : 'transparent',
-                        cursor: 'pointer', transition: theme.transitions.fast,
-                        textAlign: 'left',
+                        width: '100%', padding: '10px 14px',
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        border: 'none', borderRadius: '8px',
+                        backgroundColor: isFirst ? '#FDF6EC' : 'transparent',
+                        cursor: 'pointer', textAlign: 'left',
+                        transition: theme.transitions.fast,
                       }}
-                      onMouseEnter={(e) => {
-                        if (!isActive) e.currentTarget.style.backgroundColor = theme.colors.gray50;
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
+                      onMouseEnter={(e) => { if (!isFirst) e.currentTarget.style.backgroundColor = colors.surfaceHover; }}
+                      onMouseLeave={(e) => { if (!isFirst) e.currentTarget.style.backgroundColor = 'transparent'; }}
                     >
+                      <ch.Icon size={16} color={colors.textSecondary} />
                       <span style={{
-                        fontSize: '13px', fontWeight: isActive ? 600 : 500,
-                        color: isActive ? theme.colors.blue : theme.colors.navy,
-                        fontFamily: theme.fonts.body,
-                      }}>{l}</span>
-                      {isActive && <Check size={14} color={theme.colors.blue} />}
+                        flex: 1, fontSize: '14px',
+                        fontWeight: isFirst ? 600 : 400,
+                        color: colors.text, fontFamily: theme.fonts.body,
+                      }}>{ch.label}</span>
+                      <span style={{
+                        fontSize: '13px', fontWeight: 500,
+                        color: colors.textTertiary,
+                      }}>{ch.count}</span>
                     </button>
                   );
                 })}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Select checkbox */}
           <button style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: theme.radii.full,
-            border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
-            fontSize: '11px', fontWeight: 500, color: colors.textSecondary,
-            fontFamily: theme.fonts.body, cursor: 'pointer',
+            padding: '6px 14px', borderRadius: theme.radii.full,
+            border: 'none', backgroundColor: theme.colors.blue,
+            fontSize: '13px', fontWeight: 600, fontFamily: theme.fonts.body,
+            color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
           }}>
-            <Square size={12} /> Select
+            <Plus size={14} /> New
           </button>
-
-          {filters.map((f) => {
-            const isActive = activeFilter === f.id;
-            return (
-              <button
-                key={f.id}
-                onClick={() => setActiveFilter(f.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  padding: '4px 8px', borderRadius: theme.radii.full,
-                  border: f.filled && isActive
-                    ? `1px solid ${theme.colors.blue}`
-                    : `1px solid ${isActive ? theme.colors.blue + '40' : colors.border}`,
-                  backgroundColor: f.filled && isActive ? theme.colors.blue
-                    : isActive ? theme.colors.blueMuted : 'transparent',
-                  fontSize: '11px', fontWeight: 600, fontFamily: theme.fonts.body,
-                  color: f.filled && isActive ? '#fff'
-                    : isActive ? theme.colors.blue : colors.textSecondary,
-                  cursor: 'pointer', transition: theme.transitions.fast,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {f.dotColor && (
-                  <div style={{
-                    width: '6px', height: '6px', borderRadius: '50%',
-                    backgroundColor: f.dotColor,
-                  }} />
-                )}
-                {f.label}
-                {f.count != null && (
-                  <span style={{
-                    fontSize: '10px', fontWeight: 700,
-                    backgroundColor: f.filled && isActive ? 'rgba(255,255,255,0.3)' : 'transparent',
-                    borderRadius: theme.radii.full, padding: '0 2px',
-                  }}>{f.count}</span>
-                )}
-                {f.hasChevron && <ChevronDown size={10} />}
-              </button>
-            );
-          })}
         </div>
       </div>
 
-      {/* Week divider */}
-      <div style={{
-        padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
+      {/* Date group header */}
+      <div style={{ padding: '10px 20px 6px' }}>
         <span style={{
-          fontSize: '10px', fontWeight: 700, color: colors.textTertiary,
+          fontSize: '11px', fontWeight: 700, color: colors.textTertiary,
           textTransform: 'uppercase', letterSpacing: '0.5px',
-        }}>This week · 7</span>
-        <ChevronDown size={12} color={colors.textTertiary} />
+        }}>Today · {filteredConversations.length}</span>
       </div>
 
       {/* Conversations */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {inboxConversations.map((conv) => {
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}>
+        {filteredConversations.map((conv) => {
           const isSelected = selected?.id === conv.id;
-          const channelMap = {
-            chat: { icon: MessageSquare, label: 'Chat', color: theme.colors.purple, bg: theme.colors.purpleMuted },
-            email: { icon: Mail, label: 'Email', color: theme.colors.blue, bg: theme.colors.blueMuted },
-            call: { icon: Phone, label: 'Call', color: theme.colors.success, bg: theme.colors.successMuted },
-            phone: { icon: Phone, label: 'Call', color: theme.colors.success, bg: theme.colors.successMuted },
-            sms: { icon: MessageSquare, label: 'SMS', color: theme.colors.warning, bg: theme.colors.warningMuted },
-            twitter: { icon: Twitter, label: 'Twitter', color: '#000000', bg: 'rgba(0,0,0,0.06)' },
-          };
-          const ch = channelMap[conv.channel] || channelMap.chat;
-          const ChannelIcon = ch.icon;
+          const isHover = hovered === conv.id;
+          const isChannel = conv.type === 'channel';
           return (
             <div
               key={conv.id}
@@ -1751,50 +2047,90 @@ function ConversationList({ selected, setSelected, activeLayout, setActiveLayout
               onMouseEnter={() => setHovered(conv.id)}
               onMouseLeave={() => setHovered(null)}
               style={{
-                padding: '12px 16px',
-                borderBottom: `1px solid ${colors.divider}`,
+                padding: '14px 20px 14px 16px',
                 cursor: 'pointer',
-                backgroundColor: isSelected ? colors.sidebarActive
-                  : hovered === conv.id ? colors.surfaceHover : 'transparent',
-                borderLeft: isSelected ? `3px solid ${theme.colors.blue}` : '3px solid transparent',
+                backgroundColor: isSelected ? '#FFF7ED'
+                  : isHover ? '#FAFAF9' : '#fff',
                 transition: theme.transitions.fast,
+                borderLeft: isSelected ? '3px solid #E8A23E' : '3px solid transparent',
+                borderRadius: '10px',
+                marginBottom: '4px',
               }}
             >
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {/* Channel icon */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                {/* Unread dot */}
                 <div style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', flexShrink: 0,
+                  width: '8px', minWidth: '8px', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', paddingTop: '12px',
                 }}>
-                  <div title={ch.label} style={{
-                    width: '22px', height: '22px', borderRadius: theme.radii.md,
-                    backgroundColor: ch.bg, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <ChannelIcon size={11} color={ch.color} />
-                  </div>
-                </div>
-                <Avatar name={conv.name} size={36} gradient={conv.gradient} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{conv.name}</span>
-                    <span style={{ fontSize: '12px', color: colors.textTertiary }}>{conv.time}</span>
-                  </div>
-                  {conv.tags.length > 0 && (
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                      {conv.tags.map((tag, i) => (
-                        <span key={i} style={{
-                          fontSize: '11px', fontWeight: 600, padding: '1px 6px',
-                          borderRadius: theme.radii.full, backgroundColor: tag.bg, color: tag.color,
-                        }}>{tag.label}</span>
-                      ))}
-                    </div>
+                  {conv.unread && (
+                    <div style={{
+                      width: '7px', height: '7px', borderRadius: '50%',
+                      backgroundColor: theme.colors.blue,
+                    }} />
                   )}
+                </div>
+
+                {/* Avatar: # icon in colored square for channels, initials circle for people */}
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  {isChannel ? (
+                    <div style={{
+                      width: '38px', height: '38px', borderRadius: '10px',
+                      backgroundColor: conv.channelColor || '#0D9488',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Hash size={20} color="#fff" strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <>
+                      <Avatar name={conv.name} size={38} gradient={conv.gradient} />
+                      {conv.status === 'online' && (
+                        <div style={{
+                          position: 'absolute', bottom: '0', right: '0',
+                          width: '10px', height: '10px', borderRadius: '50%',
+                          backgroundColor: '#22C55E',
+                          border: `2px solid ${isSelected ? '#FFF7ED' : '#fff'}`,
+                        }} />
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Name + Preview */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: '14px', fontWeight: conv.unread ? 600 : 500,
+                    color: colors.text, marginBottom: '3px',
+                  }}>{conv.name}</div>
                   {conv.preview && (
                     <p style={{
                       fontSize: '13px', color: colors.textSecondary, margin: 0,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>{conv.preview}</p>
+                  )}
+                </div>
+
+                {/* Timestamp + Channel label */}
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+                  flexShrink: 0, gap: '4px', paddingTop: '2px',
+                }}>
+                  <span style={{
+                    fontSize: '12px', fontWeight: 500,
+                    color: conv.unread ? '#E8A23E' : colors.textTertiary,
+                  }}>{conv.time}</span>
+                  {conv.channelLabel && (
+                    <span style={{
+                      fontSize: '11px', color: colors.textTertiary,
+                      display: 'flex', alignItems: 'center', gap: '3px',
+                    }}>
+                      {conv.channel === 'chat' && <MessageSquare size={10} />}
+                      {conv.channel === 'email' && <Mail size={10} />}
+                      {conv.channel === 'sms' && <MessageSquare size={10} />}
+                      {conv.channel === 'phone' && <Phone size={10} />}
+                      {conv.channel === 'channel' && <Hash size={10} />}
+                      {conv.channelLabel}
+                    </span>
                   )}
                 </div>
               </div>
@@ -1806,7 +2142,89 @@ function ConversationList({ selected, setSelected, activeLayout, setActiveLayout
   );
 }
 
-function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMessages, composeText, setComposeText, pendingDraftId, setPendingDraftId, onAskNextIQ }) {
+function JournalView({ conversation }) {
+  const { theme: themeMode } = useTheme();
+  const colors = theme.themes[themeMode];
+  const timeline = interactionTimelineMap[conversation?.id] || interactionTimelineMap.default;
+
+  const channelDef = {
+    sms: { icon: MessageSquare, label: 'SMS', color: theme.colors.warning, bg: theme.colors.warningMuted },
+    email: { icon: Mail, label: 'Email', color: theme.colors.blue, bg: theme.colors.blueMuted },
+    phone: { icon: Phone, label: 'Call', color: theme.colors.success, bg: theme.colors.successMuted },
+    chat: { icon: MessageSquare, label: 'Chat', color: theme.colors.purple, bg: theme.colors.purpleMuted },
+    twitter: { icon: Twitter, label: 'Twitter', color: '#000000', bg: 'rgba(0,0,0,0.06)' },
+  };
+
+  const grouped = useMemo(() => {
+    const groups = {};
+    timeline.forEach((item) => {
+      const key = item.date;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    });
+    return Object.entries(groups).reverse();
+  }, [timeline]);
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+      {grouped.map(([dateLabel, items]) => (
+        <div key={dateLabel} style={{ marginBottom: '24px' }}>
+          <div style={{
+            fontSize: '14px', fontWeight: 700, color: colors.text,
+            marginBottom: '16px', display: 'flex', alignItems: 'baseline', gap: '8px',
+          }}>
+            <span>{dateLabel.split(' ')[0] === 'Today' ? 'Today' : dateLabel}</span>
+            {dateLabel.includes(' ') && (
+              <span style={{ fontSize: '13px', fontWeight: 400, color: colors.textTertiary }}>
+                {dateLabel.replace(/^[^ ]+ /, '')}
+              </span>
+            )}
+          </div>
+
+          {items.map((item) => {
+            const ch = channelDef[item.channel] || channelDef.chat;
+            const ChIcon = ch.icon;
+            return (
+              <div key={item.id} style={{
+                display: 'flex', gap: '12px', padding: '12px 0',
+                borderBottom: `1px solid ${colors.divider}`,
+              }}>
+                <div style={{
+                  fontSize: '12px', color: colors.textTertiary, width: '60px',
+                  flexShrink: 0, paddingTop: '2px',
+                }}>{item.time}</div>
+                <div style={{
+                  width: '28px', height: '28px', borderRadius: '8px',
+                  backgroundColor: ch.bg, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <ChIcon size={14} color={ch.color} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: '14px', fontWeight: 600, color: colors.text,
+                    marginBottom: '3px',
+                  }}>{item.title}</div>
+                  <div style={{
+                    fontSize: '12px', color: colors.textSecondary,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {item.messages?.[0]?.text || item.outcome}
+                  </div>
+                </div>
+                {item.highlight && (
+                  <ChevronRight size={16} color={colors.textTertiary} style={{ flexShrink: 0, marginTop: '4px' }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMessages, composeText, setComposeText, pendingDraftId, setPendingDraftId, onAskNextIQ, onBack, viewMode, setViewMode }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const isVoice = conversation?.channel === 'phone';
@@ -1857,7 +2275,7 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
   };
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [msgLayout, setMsgLayout] = useState('default');
-  const [expandedIds, setExpandedIds] = useState(new Set([1]));
+  const [expandedIds, setExpandedIds] = useState(new Set());
   const [hoveredMsgId, setHoveredMsgId] = useState(null);
   const moreMenuRef = useRef(null);
   const scrollAreaRef = useRef(null);
@@ -1885,7 +2303,7 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
   }, []);
 
   if (!conversation) return (
-    <div style={{ flex: 45, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
       <div style={{ textAlign: 'center', color: colors.textSecondary }}>
         <MessageSquare size={48} color={colors.textTertiary} style={{ marginBottom: '16px' }} />
         <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>Select a conversation</div>
@@ -1894,59 +2312,92 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
     </div>
   );
 
+  const isCustomer = conversation.type === 'customer';
+
   return (
-    <div style={{ flex: 45, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
+    <div style={{ flex: 55, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       {/* ─── Conversation Header ─── */}
       <div style={{
-        padding: '12px 20px', borderBottom: `1px solid ${colors.border}`,
-        backgroundColor: colors.surface, display: 'flex', alignItems: 'center', gap: '12px',
+        padding: '10px 16px', borderBottom: `1px solid ${colors.border}`,
+        backgroundColor: colors.surface, display: 'flex', alignItems: 'center', gap: '8px',
       }}>
-        <Avatar name={conversation.name} size={40} gradient={conversation.gradient} />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 600, color: colors.text }}>{conversation.name}</span>
-            {isVoice ? (
-              <span style={{
-                fontSize: '12px', fontWeight: 600, padding: '2px 8px',
-                borderRadius: theme.radii.full, backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                color: '#D97706', display: 'flex', alignItems: 'center', gap: '4px',
-              }}>
-                <Phone size={11} />
-                Voice Call
-                <span style={{ fontSize: '10px', fontWeight: 700, color: theme.colors.success, marginLeft: '2px' }}>
-                  {formatCallDuration(callDuration)}
-                </span>
-              </span>
-            ) : (
-              <span style={{
-                fontSize: '12px', fontWeight: 600, padding: '2px 8px',
-                borderRadius: theme.radii.full, backgroundColor: theme.colors.successMuted,
-                color: theme.colors.success, display: 'flex', alignItems: 'center', gap: '4px',
-              }}>
-                <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: theme.colors.success }} />
-                Live Chat
-              </span>
-            )}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{
-            fontSize: '13px', fontWeight: 600, color: colors.textSecondary,
-            backgroundColor: colors.surfaceHover, padding: '4px 10px',
-            borderRadius: theme.radii.full, display: 'flex', alignItems: 'center', gap: '4px',
+        {/* Back arrow */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              border: 'none', background: 'transparent', cursor: 'pointer',
+              padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center',
+              color: colors.textSecondary, flexShrink: 0,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.surfaceHover}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <ChevronRight size={18} style={{ transform: 'rotate(180deg)' }} />
+          </button>
+        )}
+
+        {/* Customer name */}
+        <span style={{
+          fontSize: '15px', fontWeight: 700, color: colors.text,
+          whiteSpace: 'nowrap', flexShrink: 0,
+          fontFamily: theme.fonts.heading,
+        }}>{conversation.name}</span>
+
+        {/* Left spacer for centering */}
+        <div style={{ flex: 1 }} />
+
+        {/* Conversation / Journal toggle — centered */}
+        {isCustomer && viewMode && setViewMode && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '2px',
+            backgroundColor: colors.surfaceHover, borderRadius: theme.radii.full,
+            padding: '3px', flexShrink: 0,
           }}>
-            <Clock size={13} /> 1h 23m
-          </span>
+            {[
+              { id: 'conversation', label: 'Conversation', Icon: MessageSquare },
+              { id: 'journal', label: 'Journal', Icon: FileText },
+            ].map(({ id, label, Icon }) => {
+              const isActive = viewMode === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setViewMode(id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    padding: '5px 12px', borderRadius: theme.radii.full,
+                    border: 'none',
+                    backgroundColor: isActive ? '#fff' : 'transparent',
+                    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    fontSize: '12px', fontWeight: isActive ? 600 : 500,
+                    fontFamily: theme.fonts.body,
+                    color: isActive ? colors.text : colors.textSecondary,
+                    cursor: 'pointer', transition: theme.transitions.fast,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Icon size={13} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Right spacer for centering */}
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           {[Phone, Video, Bookmark].map((Icon, i) => (
             <button key={i} style={{
-              width: '32px', height: '32px', borderRadius: theme.radii.md, border: 'none',
+              width: '30px', height: '30px', borderRadius: theme.radii.md, border: 'none',
               backgroundColor: 'transparent', cursor: 'pointer', display: 'flex',
               alignItems: 'center', justifyContent: 'center', transition: theme.transitions.fast,
             }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.surfaceHover}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <Icon size={16} color={colors.textSecondary} />
+              <Icon size={15} color={colors.textSecondary} />
             </button>
           ))}
           {/* More menu with dropdown */}
@@ -2033,9 +2484,16 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
         </div>
       </div>
 
+      {/* ─── Journal View ─── */}
+      {viewMode === 'journal' && (
+        <JournalView conversation={conversation} />
+      )}
+
+      {/* ─── Conversation View ─── */}
+      {viewMode !== 'journal' && (<>
       {/* ─── Interaction timeline ─── */}
       <div ref={scrollAreaRef} style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: '800px', width: '100%', margin: '0 auto', padding: '36px 24px 0' }}>
+        <div style={{ width: '100%', padding: '24px 16px 0' }}>
           {/* Jump to button */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
@@ -2498,7 +2956,7 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
         </div>
       ) : (
         <div style={{
-          padding: '12px 20px 16px', borderTop: `1px solid ${colors.border}`,
+          padding: '12px 14px 14px', borderTop: `1px solid ${colors.border}`,
           backgroundColor: colors.surface,
         }}>
           <div style={{
@@ -2550,7 +3008,23 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
                 </button>
               </div>
             )}
-            <div style={{ padding: '12px 16px' }}>
+
+            {/* Channel type selector */}
+            <div style={{
+              padding: '10px 16px 0', display: 'flex', alignItems: 'center',
+            }}>
+              <button style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                padding: '4px 0', fontFamily: theme.fonts.body,
+              }}>
+                <MessageSquare size={16} color="#0D9488" />
+                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Text message</span>
+                <ChevronDown size={13} color={colors.textSecondary} />
+              </button>
+            </div>
+
+            <div style={{ padding: '8px 16px 12px' }}>
               <textarea
                 ref={inputRef}
                 value={messageText}
@@ -2573,42 +3047,53 @@ function ConversationDetail({ conversation, autopilot, liveMessages, setLiveMess
             </div>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 12px', borderTop: `1px solid ${colors.divider}`,
+              padding: '8px 12px',
             }}>
-              <div style={{ display: 'flex', gap: '2px' }}>
-                {[Plus, Paperclip, Camera, Smile, Mic].map((Icon, i) => {
-                  return (
-                    <button key={i} style={{
-                      width: '30px', height: '30px', borderRadius: theme.radii.md,
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: theme.transitions.fast,
-                    }}>
-                      <Icon size={15} color={colors.textSecondary} />
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button
-                  onClick={handleSendMessage}
-                  style={{
-                    width: '32px', height: '32px', borderRadius: theme.radii.md,
-                    border: 'none',
-                    backgroundColor: messageText.trim() ? theme.colors.blue : colors.surfaceHover,
-                    cursor: messageText.trim() ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: theme.transitions.fast,
-                  }}
-                >
-                  <Send size={15} color={messageText.trim() ? '#fff' : colors.textTertiary} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+                <button style={{
+                  width: '30px', height: '30px', borderRadius: theme.radii.md,
+                  border: 'none', backgroundColor: 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Plus size={16} color={colors.textSecondary} />
+                </button>
+                <div style={{
+                  width: '1px', height: '18px', backgroundColor: colors.divider,
+                  margin: '0 6px',
+                }} />
+                <button style={{
+                  width: '30px', height: '30px', borderRadius: theme.radii.md,
+                  border: 'none', backgroundColor: 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Smile size={16} color={colors.textSecondary} />
+                </button>
+                <button style={{
+                  width: '30px', height: '30px', borderRadius: theme.radii.md,
+                  border: 'none', backgroundColor: 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Mic size={16} color={colors.textSecondary} />
                 </button>
               </div>
+              <button
+                onClick={handleSendMessage}
+                style={{
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  border: 'none',
+                  backgroundColor: messageText.trim() ? theme.colors.blue : colors.surfaceHover,
+                  cursor: messageText.trim() ? 'pointer' : 'default',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: theme.transitions.fast,
+                }}
+              >
+                <Send size={16} color={messageText.trim() ? '#fff' : colors.textTertiary} />
+              </button>
             </div>
           </div>
         </div>
       )}
+      </>)}
     </div>
   );
 }
@@ -5792,7 +6277,7 @@ function RightPanel({ conversation, autopilot, setAutopilot, liveMessages, setLi
   }, [nextIQQuery]);
 
   return (
-    <div style={{ display: 'flex', height: '100%', flex: 55, minWidth: 0 }}>
+    <div style={{ display: 'flex', height: '100%', flex: 45, minWidth: 0 }}>
       {/* Panel Content */}
       <div style={{
         flex: 1, minWidth: 0, borderLeft: `1px solid ${colors.border}`,
@@ -5879,9 +6364,9 @@ function RightPanel({ conversation, autopilot, setAutopilot, liveMessages, setLi
 export default function InboxPage({ initialCustomerId, onConsumeInitialId }) {
   const [selectedConv, setSelectedConv] = useState(() => {
     if (initialCustomerId) {
-      return inboxConversations.find(c => c.id === initialCustomerId) || inboxConversations[0];
+      return inboxConversations.find(c => c.id === initialCustomerId) || null;
     }
-    return inboxConversations[0];
+    return null;
   });
   useEffect(() => {
     if (initialCustomerId) {
@@ -5891,16 +6376,18 @@ export default function InboxPage({ initialCustomerId, onConsumeInitialId }) {
     }
   }, [initialCustomerId]);
 
-  const [activeInbox, setActiveInbox] = useState('my-inbox');
+  const [activeInbox, setActiveInbox] = useState('contacts');
   const [activeLayout, setActiveLayout] = useState('classic');
   const [autopilot, setAutopilot] = useState(false);
+  const [viewMode, setViewMode] = useState('conversation');
   const [conversationStore, setConversationStore] = useState(() => {
     const store = {};
     Object.entries(allConversations).forEach(([id, msgs]) => { store[id] = [...msgs]; });
     return store;
   });
-  const liveMessages = conversationStore[selectedConv.id] || [];
+  const liveMessages = selectedConv ? (conversationStore[selectedConv.id] || []) : [];
   const setLiveMessages = (updater) => {
+    if (!selectedConv) return;
     setConversationStore(prev => ({
       ...prev,
       [selectedConv.id]: typeof updater === 'function' ? updater(prev[selectedConv.id] || []) : updater,
@@ -5912,39 +6399,60 @@ export default function InboxPage({ initialCustomerId, onConsumeInitialId }) {
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
 
+  const handleSelectConversation = (conv) => {
+    setSelectedConv(conv);
+    setViewMode('conversation');
+  };
+
+  const handleBack = () => {
+    setSelectedConv(null);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 68px)', overflow: 'hidden' }}>
-      {/* Main 4-panel layout */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         <InboxSidebar activeInbox={activeInbox} setActiveInbox={setActiveInbox} />
+
+        {/* Conversation list — always visible, compact when a conversation is open */}
         <ConversationList
           selected={selectedConv}
-          setSelected={setSelectedConv}
+          setSelected={handleSelectConversation}
           activeLayout={activeLayout}
           setActiveLayout={setActiveLayout}
+          activeInbox={activeInbox}
+          compact={!!selectedConv}
         />
-        <ConversationDetail
-          conversation={selectedConv}
-          autopilot={autopilot}
-          liveMessages={liveMessages}
-          setLiveMessages={setLiveMessages}
-          composeText={composeText}
-          setComposeText={setComposeText}
-          pendingDraftId={pendingDraftId}
-          setPendingDraftId={setPendingDraftId}
-          onAskNextIQ={(text) => setNextIQQuery({ text, ts: Date.now() })}
-        />
-        <RightPanel
-          conversation={selectedConv}
-          autopilot={autopilot}
-          setAutopilot={setAutopilot}
-          liveMessages={liveMessages}
-          setLiveMessages={setLiveMessages}
-          setComposeText={setComposeText}
-          setPendingDraftId={setPendingDraftId}
-          nextIQQuery={nextIQQuery}
-          clearNextIQQuery={() => setNextIQQuery(null)}
-        />
+
+        {/* Conversation detail + NextIQ when a conversation is selected */}
+        {selectedConv && (
+          <>
+            <ConversationDetail
+              conversation={selectedConv}
+              autopilot={autopilot}
+              liveMessages={liveMessages}
+              setLiveMessages={setLiveMessages}
+              composeText={composeText}
+              setComposeText={setComposeText}
+              pendingDraftId={pendingDraftId}
+              setPendingDraftId={setPendingDraftId}
+              onAskNextIQ={(text) => setNextIQQuery({ text, ts: Date.now() })}
+              onBack={handleBack}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+            />
+            <RightPanel
+              conversation={selectedConv}
+              autopilot={autopilot}
+              setAutopilot={setAutopilot}
+              liveMessages={liveMessages}
+              setLiveMessages={setLiveMessages}
+              setComposeText={setComposeText}
+              setPendingDraftId={setPendingDraftId}
+              nextIQQuery={nextIQQuery}
+              clearNextIQQuery={() => setNextIQQuery(null)}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,53 @@
+{
+  "steps": [
+    {
+      "step": 1,
+      "description": "Navigated to localhost:5173",
+      "success": true
+    },
+    {
+      "step": 2,
+      "description": "Logged in with test email",
+      "success": true
+    },
+    {
+      "step": 3,
+      "description": "Clicked Inbox in sidebar",
+      "success": true
+    },
+    {
+      "step": 5,
+      "description": "Clicked on Brad Pitt conversation using: Direct click on \"Brad Pitt\" text",
+      "success": true,
+      "method": "Direct click on \"Brad Pitt\" text"
+    }
+  ],
+  "finalState": {
+    "conversationListVisible": null,
+    "detailViewVisible": null,
+    "hasBackButton": false,
+    "hasPersonName": false,
+    "messageCount": 11,
+    "bodyContainsBradPitt": true,
+    "bodyContainsConversationList": false,
+    "viewChanged": true
+  },
+  "success": true,
+  "beforeClick": {
+    "conversationListVisible": false,
+    "conversationListDisplay": null,
+    "detailViewVisible": false,
+    "detailViewDisplay": null
+  },
+  "afterClick": {
+    "conversationListVisible": null,
+    "detailViewVisible": null,
+    "hasBackButton": false,
+    "hasPersonName": false,
+    "messageCount": 11,
+    "bodyContainsBradPitt": true,
+    "bodyContainsConversationList": false,
+    "viewChanged": true
+  },
+  "viewChanged": true
+}
