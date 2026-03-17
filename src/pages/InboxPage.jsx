@@ -3491,7 +3491,7 @@ function NextIQPanel({ conversation, autopilot, setAutopilot, liveMessages, setL
       setCountdownSent(false);
       setCountdown(COUNTDOWN_TOTAL);
       setAutopilotDecision(null);
-    }, 5000);
+    }, 2000);
 
     return () => {
       if (customerReplyTimer.current) clearTimeout(customerReplyTimer.current);
