@@ -1170,6 +1170,7 @@ export default function AdminPage({ setActiveNav }) {
   const [deletedGoalIds, setDeletedGoalIds] = useState([]);
   const [creatingGuardrail, setCreatingGuardrail] = useState(false);
   const [editingGuardrailId, setEditingGuardrailId] = useState(null);
+  const [importedTemplate, setImportedTemplate] = useState(null);
   const [customGuardrails, setCustomGuardrails] = useState([]);
   const [guardrailOverrides, setGuardrailOverrides] = useState({});
   const { theme: themeMode } = useTheme();
@@ -1361,6 +1362,13 @@ export default function AdminPage({ setActiveNav }) {
             <NextIQGoalDetail goalId={selectedGoalId} onBack={() => setSelectedGoalId(null)} onEdit={(id) => setEditingGoalId(id)} allGoals={allGoals} />
           ) : activeSection === 'nextiqGoals' ? (
             <NextIQGoals onSelectGoal={(id) => setSelectedGoalId(id)} onCreateGoal={() => setCreatingGoal(true)} onToggleGoal={handleToggleGoal} onDeleteGoal={handleDeleteGoal} allGoals={allGoals} />
+          ) : activeSection === 'nextiqGuardrails' && importedTemplate ? (
+            <NextIQGuardrailCreate
+              editGuardrail={importedTemplate}
+              onBack={() => setImportedTemplate(null)}
+              onSave={(gr) => { setCustomGuardrails(prev => [...prev, gr]); setImportedTemplate(null); }}
+              allGoals={allGoals}
+            />
           ) : activeSection === 'nextiqGuardrails' && creatingGuardrail ? (
             <NextIQGuardrailCreate
               onBack={() => setCreatingGuardrail(false)}
@@ -1378,6 +1386,7 @@ export default function AdminPage({ setActiveNav }) {
             <NextIQGuardrails
               onCreateGuardrail={() => setCreatingGuardrail(true)}
               onEditGuardrail={(id) => setEditingGuardrailId(id)}
+              onImportTemplate={(tpl) => { setImportedTemplate({ ...tpl, id: `GR-${String(NEXTIQ_GUARDRAILS.length + customGuardrails.length + 1).padStart(3, '0')}` }); }}
               allGuardrails={allGuardrails}
             />
           ) : activeSection === 'nextiqPlaybooks' ? (

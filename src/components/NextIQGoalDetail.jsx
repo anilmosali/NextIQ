@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import {
   ChevronLeft, Target, Activity, ThumbsUp, Star,
   Edit, Save, RotateCcw, Lock, Sparkles, FileText, Wrench,
-  AlertTriangle, Zap, Shield,
+  AlertTriangle, Zap, Shield, Globe,
 } from 'lucide-react';
 import { NEXTIQ_GOALS, NEXTIQ_ENGINE, NEXTIQ_GUARDRAILS } from '../data/nextiqConfig';
 
@@ -23,7 +23,9 @@ export default function NextIQGoalDetail({ goalId, onBack, onEdit, allGoals: all
   const statusColor = goal.status === 'active' ? theme.colors.success : theme.colors.warning;
   const statusBg = goal.status === 'active' ? theme.colors.successMuted : theme.colors.warningMuted;
 
-  const linkedGuardrails = NEXTIQ_GUARDRAILS.filter(g => g.applicableGoals.includes(goalId));
+  const orgGuardrails = NEXTIQ_GUARDRAILS.filter(g => g.level === 'organization' && g.status === 'active');
+  const goalGuardrails = NEXTIQ_GUARDRAILS.filter(g => g.level === 'goal' && g.applicableGoals.includes(goalId));
+  const linkedGuardrails = [...orgGuardrails, ...goalGuardrails];
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -189,8 +191,23 @@ export default function NextIQGoalDetail({ goalId, onBack, onEdit, allGoals: all
                 <Shield size={14} color={theme.colors.warning} />
                 <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text }}>Guardrails</span>
               </div>
-              {linkedGuardrails.map((gr, i) => (
-                <div key={i} style={{
+              {orgGuardrails.length > 0 && (
+                <div style={{ fontSize: '10px', fontWeight: 600, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '0 0 4px' }}>Inherited</div>
+              )}
+              {orgGuardrails.map((gr, i) => (
+                <div key={`org-${i}`} style={{
+                  fontSize: '12px', color: colors.textSecondary, padding: '4px 0',
+                  borderTop: i > 0 ? `1px solid ${colors.borderLight}` : 'none',
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                }}>
+                  <Globe size={10} color={theme.colors.blue} /> {gr.name}
+                </div>
+              ))}
+              {goalGuardrails.length > 0 && (
+                <div style={{ fontSize: '10px', fontWeight: 600, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: '0.3px', margin: '8px 0 4px' }}>Goal-specific</div>
+              )}
+              {goalGuardrails.map((gr, i) => (
+                <div key={`goal-${i}`} style={{
                   fontSize: '12px', color: colors.textSecondary, padding: '4px 0',
                   borderTop: i > 0 ? `1px solid ${colors.borderLight}` : 'none',
                 }}>
@@ -365,21 +382,65 @@ export default function NextIQGoalDetail({ goalId, onBack, onEdit, allGoals: all
             </div>
           </div>
 
-          {/* Linked Guardrails */}
+          {/* Inherited Organization Guardrails */}
           <div style={{
             padding: '20px', borderRadius: theme.radii.xl,
             backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <Shield size={14} color={theme.colors.warning} />
-              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Linked Guardrails</span>
-              <span style={{ fontSize: '11px', color: colors.textTertiary }}>({linkedGuardrails.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Lock size={14} color={colors.textSecondary} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Inherited Guardrails</span>
+              <span style={{
+                padding: '2px 8px', borderRadius: theme.radii.full, fontSize: '10px', fontWeight: 600,
+                backgroundColor: colors.surfaceHover, color: colors.textSecondary,
+              }}>Organization · Read-only</span>
             </div>
             <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px' }}>
-              Governance rules enforced on this goal's outputs and actions.
+              These guardrails are enforced across all goals and cannot be modified at the goal level.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {linkedGuardrails.map(gr => (
+              {orgGuardrails.map(gr => (
+                <div key={gr.id} style={{
+                  padding: '12px 16px', borderRadius: theme.radii.md,
+                  border: `1px solid ${theme.colors.blue}15`,
+                  backgroundColor: `${theme.colors.blue}03`,
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  opacity: 0.85,
+                }}>
+                  <Shield size={16} color={theme.colors.blue} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{gr.name}</span>
+                      <span style={{
+                        padding: '1px 6px', borderRadius: theme.radii.full, fontSize: '9px', fontWeight: 700,
+                        textTransform: 'uppercase',
+                        backgroundColor: gr.severity === 'critical' ? theme.colors.errorMuted : theme.colors.warningMuted,
+                        color: gr.severity === 'critical' ? theme.colors.error : theme.colors.warning,
+                      }}>{gr.severity}</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>{gr.description}</div>
+                  </div>
+                  <Lock size={12} color={colors.textTertiary} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Goal-Specific Guardrails */}
+          <div style={{
+            padding: '20px', borderRadius: theme.radii.xl,
+            backgroundColor: colors.surface, border: `1px solid ${colors.border}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <AlertTriangle size={14} color={theme.colors.warning} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Goal Guardrails</span>
+              <span style={{ fontSize: '11px', color: colors.textTertiary }}>({goalGuardrails.length})</span>
+            </div>
+            <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 12px' }}>
+              Guardrails specific to this goal — activated only when this sub-agent is running.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {goalGuardrails.length > 0 ? goalGuardrails.map(gr => (
                 <div key={gr.id} style={{
                   padding: '12px 16px', borderRadius: theme.radii.md,
                   border: `1px solid ${gr.severity === 'critical' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)'}`,
@@ -403,7 +464,11 @@ export default function NextIQGoalDetail({ goalId, onBack, onEdit, allGoals: all
                     <div style={{ fontSize: '12px', color: colors.textSecondary, marginTop: '2px' }}>{gr.description}</div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: '14px', borderRadius: theme.radii.md, border: `1px dashed ${colors.border}`, textAlign: 'center' }}>
+                  <span style={{ fontSize: '12px', color: colors.textTertiary }}>No goal-specific guardrails linked</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
