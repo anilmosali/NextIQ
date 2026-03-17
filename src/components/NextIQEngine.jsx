@@ -220,13 +220,21 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals, onNa
                 background: `linear-gradient(135deg, ${theme.colors.blue}, #004580)`,
                 color: '#fff', minWidth: '160px', flexShrink: 0,
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Cpu size={16} />
-                  <span style={{ fontSize: '14px', fontWeight: 700 }}>NextIQ Engine</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <Cpu size={18} />
+                  <span style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-0.2px' }}>NextIQ Engine</span>
                 </div>
-                <div style={{ fontSize: '11px', opacity: 0.8 }}>Orchestrator</div>
-                <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>
-                  {activeGoals.length} active · {pausedGoals.length} paused
+                <div style={{ fontSize: '11px', opacity: 0.7, letterSpacing: '0.3px', marginBottom: '6px' }}>Agentic Intelligence Core</div>
+                <div style={{ fontSize: '11px', opacity: 0.85, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }} />
+                    {activeGoals.length} active
+                  </span>
+                  <span style={{ opacity: 0.4 }}>·</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#facc15', display: 'inline-block' }} />
+                    {pausedGoals.length} paused
+                  </span>
                 </div>
               </div>
 
@@ -494,11 +502,6 @@ export default function NextIQEngine({ onNavigateToGoal, onNavigateToGoals, onNa
                         <span style={{ fontSize: '10px', color: colors.textTertiary }}>
                           {ib.channels.join(', ')}
                         </span>
-                        {ib.skills?.length > 0 && (
-                          <span style={{ fontSize: '10px', color: colors.textTertiary }}>
-                            {ib.skills.length} skill{ib.skills.length !== 1 ? 's' : ''}
-                          </span>
-                        )}
                       </div>
                     </div>
 
