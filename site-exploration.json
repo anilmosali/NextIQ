@@ -1,0 +1,236 @@
+{
+  "homePage": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/home",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/home.png"
+  },
+  "Home": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/home",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/home.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Good evening, Alex.",
+        "This Week",
+        "NextIQ Recommendations",
+        "Recent Activity",
+        "Your Day"
+      ]
+    }
+  },
+  "Inbox11": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/inbox2",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/inbox11.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Inbox",
+        "Team Inboxes",
+        "My Inbox",
+        "NextIQ"
+      ]
+    }
+  },
+  "Phone": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/phone",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/phone.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Calls",
+        "NextIQ"
+      ]
+    }
+  },
+  "Meetings": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/meetings",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/meetings.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Meetings",
+        "NextIQ"
+      ]
+    }
+  },
+  "Contacts": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/contacts",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/contacts.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Contacts",
+        "Robert Chen",
+        "Add contact",
+        "NextIQ"
+      ]
+    }
+  },
+  "Accounts": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/accounts",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/accounts.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Accounts",
+        "Alvarez Catering",
+        "NextIQ"
+      ]
+    }
+  },
+  "Tickets2": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/tickets",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/tickets2.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Tickets",
+        "Team Inboxes",
+        "Views",
+        "All Tickets",
+        "NextIQ"
+      ]
+    }
+  },
+  "Analytics": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/analytics/live",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/analytics.png",
+    "structure": {
+      "hasTable": true,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Live Dashboard",
+        "NextIQ"
+      ]
+    }
+  },
+  "Supervisor view": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/supervisor",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/supervisor-view.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "NextIQ"
+      ]
+    }
+  },
+  "Marketplace": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/marketplace",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/marketplace.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 0,
+      "mainHeadings": [
+        "Marketplace",
+        "Featured Integrations",
+        "All Integrations(20)",
+        "NextIQ"
+      ]
+    }
+  },
+  "Settings": {
+    "url": "https://ui-options-nexus-design-two.vercel.app/admin",
+    "title": "NEXT 2.0 🚀",
+    "screenshot": "screenshots/settings.png",
+    "structure": {
+      "hasTable": false,
+      "hasChart": true,
+      "cardCount": 1,
+      "mainHeadings": [
+        "Welcome back, Alex",
+        "NextIQ"
+      ]
+    }
+  },
+  "uiDesign": {
+    "sidebar": {
+      "backgroundColor": "rgb(255, 255, 255)",
+      "color": "rgb(44, 36, 23)",
+      "fontSize": "16px",
+      "fontFamily": "\"Space Grotesk\", system-ui, sans-serif",
+      "padding": "8px 0px",
+      "margin": "0px",
+      "borderRadius": "0px",
+      "width": "60px",
+      "height": "1024px"
+    },
+    "topBar": {
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "color": "rgb(44, 36, 23)",
+      "fontSize": "16px",
+      "fontFamily": "\"Space Grotesk\", system-ui, sans-serif",
+      "padding": "0px",
+      "margin": "0px 0px 24px",
+      "borderRadius": "0px",
+      "width": "1152px",
+      "height": "68.1875px"
+    },
+    "mainContent": {
+      "backgroundColor": "rgb(250, 247, 242)",
+      "color": "rgb(44, 36, 23)",
+      "fontSize": "16px",
+      "fontFamily": "\"Space Grotesk\", system-ui, sans-serif",
+      "padding": "0px",
+      "margin": "0px",
+      "borderRadius": "0px",
+      "width": "1859px",
+      "height": "1024px"
+    },
+    "body": {
+      "backgroundColor": "rgb(250, 247, 242)",
+      "color": "rgb(44, 36, 23)",
+      "fontSize": "16px",
+      "fontFamily": "\"Space Grotesk\", system-ui, sans-serif",
+      "padding": "0px",
+      "margin": "0px",
+      "borderRadius": "0px",
+      "width": "1920px",
+      "height": "1024px"
+    },
+    "colorScheme": {
+      "bodyBg": "rgb(250, 247, 242)",
+      "primaryColors": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(74, 63, 48)"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(74, 63, 48)"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "color": "rgb(74, 63, 48)"
+        }
+      ]
+    }
+  }
+}

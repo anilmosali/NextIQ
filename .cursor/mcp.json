@@ -7,6 +7,14 @@
         "@agentdeskai/browser-tools-mcp@latest"
       ],
       "enabled": true
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp"
+      ],
+      "enabled": true
     }
   }
 }

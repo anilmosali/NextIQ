@@ -1,0 +1,58 @@
+{
+  "pageTitle": "Nextiva App",
+  "currentUrl": "http://localhost:5173/",
+  "leftPanel": {
+    "hasInboxHeader": true,
+    "myInboxSection": {
+      "hasMyInboxSectionHeader": true,
+      "hasMyInbox": true,
+      "hasContacts": true,
+      "hasInternal": true
+    },
+    "teamInboxesSection": {
+      "hasTeamInboxesHeader": true,
+      "hasSales": true,
+      "hasService": true,
+      "hasMarketing": true,
+      "hasCreateTeam": true
+    }
+  },
+  "conversationArea": {
+    "hasMyInboxTitle": true,
+    "hasTabs": {
+      "all": [
+        "All\n7"
+      ],
+      "unread": [
+        "Unread\n3"
+      ],
+      "myCustomers": [
+        "My Customers\n5"
+      ],
+      "internal": [
+        "Internal\n2"
+      ],
+      "channels": [
+        "Channels\n3"
+      ]
+    },
+    "hasTodayDivider": true
+  },
+  "rightPanel": {
+    "found": true,
+    "hasIntelligenceWidget": true
+  },
+  "detailedFindings": {
+    "conversationElements": {
+      "hasUnreadDots": true,
+      "hasAvatars": false,
+      "hasOnlineStatus": true,
+      "hasConversationNames": true
+    },
+    "filterTabs": {
+      "found": false,
+      "count": 0,
+      "tabs": []
+    }
+  }
+}

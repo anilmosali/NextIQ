@@ -546,9 +546,21 @@ export default function CoachingRulesBuilder() {
                       border: `1px solid ${isHov ? tmpl.color + '60' : colors.border}`,
                       backgroundColor: isHov ? tmpl.color + '06' : colors.surface,
                       cursor: 'pointer', transition: theme.transitions.fast,
+                      position: 'relative',
                     }}
                     onClick={() => handleUseTemplate(tmpl)}
                   >
+                    {isHov && (
+                      <span style={{
+                        position: 'absolute', bottom: '10px', right: '10px',
+                        display: 'flex', alignItems: 'center', gap: '4px',
+                        padding: '3px 10px', borderRadius: theme.radii.full,
+                        backgroundColor: theme.colors.blue, color: '#fff',
+                        fontSize: '10px', fontWeight: 700,
+                      }}>
+                        <Play size={10} /> Use Template
+                      </span>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                       <div style={{
                         width: '36px', height: '36px', borderRadius: theme.radii.md,
@@ -571,17 +583,6 @@ export default function CoachingRulesBuilder() {
                         </p>
                       </div>
                     </div>
-                    {isHov && (
-                      <div style={{
-                        marginTop: '10px', paddingTop: '10px', borderTop: `1px solid ${colors.borderLight}`,
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                      }}>
-                        <Play size={12} color={theme.colors.blue} />
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: theme.colors.blue }}>
-                          Use Template
-                        </span>
-                      </div>
-                    )}
                   </div>
                 );
               })}

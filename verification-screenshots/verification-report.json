@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-03-13T19:34:47.058Z",
+  "totalSteps": 8,
+  "results": [
+    {
+      "step": 1,
+      "description": "Initial page load",
+      "status": "success"
+    },
+    {
+      "step": 2,
+      "description": "Clicked Sign in button",
+      "status": "success"
+    },
+    {
+      "step": 3,
+      "description": "Navigated to Inbox",
+      "status": "success"
+    },
+    {
+      "step": "V1",
+      "description": "Sidebar structure verification",
+      "status": "completed",
+      "details": {
+        "hasInboxHeader": true,
+        "hasMyInbox": true,
+        "hasMyInboxIcon": false,
+        "hasMyInboxBadge": false,
+        "hasTeamInboxesSection": true,
+        "hasSalesTeam": true,
+        "hasServiceTeam": true,
+        "hasMarketingTeam": true,
+        "hasContactsItem": false,
+        "hasInternalItem": false
+      }
+    },
+    {
+      "step": "V2",
+      "description": "Initial state verification",
+      "status": "completed",
+      "details": {
+        "hasEngagementList": false,
+        "hasFilterTabs": true,
+        "hasAllTab": true,
+        "hasUnreadTab": true,
+        "hasMyCustomersTab": true,
+        "hasInternalTab": true,
+        "hasChannelsTab": true,
+        "hasConversationRows": false,
+        "conversationDetailVisible": false,
+        "engagementListFullWidth": false
+      }
+    },
+    {
+      "step": "V3",
+      "description": "Conversation click verification",
+      "status": "completed",
+      "details": {
+        "conversationClicked": true,
+        "engagementListHidden": false,
+        "detailViewVisible": false,
+        "hasBackArrow": false,
+        "hasPersonName": true,
+        "hasConversationJournalToggle": false,
+        "hasConversationTab": false,
+        "hasJournalTab": false,
+        "hasChatMessages": false,
+        "hasNextIQPanel": true
+      }
+    },
+    {
+      "step": "V4",
+      "description": "Journal tab not found",
+      "status": "warning"
+    },
+    {
+      "step": "V5",
+      "description": "Back button not found",
+      "status": "warning"
+    }
+  ]
+}

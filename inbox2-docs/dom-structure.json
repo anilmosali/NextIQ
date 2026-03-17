@@ -1,0 +1,62 @@
+{
+  "sidebar": null,
+  "topBar": {
+    "tag": "header",
+    "classes": [
+      "fixed",
+      "top-0",
+      "left-0",
+      "right-0",
+      "h-[var(--top-bar-height)]",
+      "bg-[var(--bg-surface)]",
+      "border-b",
+      "border-[var(--border-secondary)]",
+      "flex",
+      "items-center",
+      "justify-between",
+      "px-4",
+      "z-[var(--z-sticky)]"
+    ],
+    "id": null,
+    "text": "K14%Complete Setup· 6 leftNextIQ"
+  },
+  "mainContent": {
+    "tag": "main",
+    "classes": [
+      "min-w-0",
+      "overflow-x-hidden",
+      "bg-[var(--bg-primary)]",
+      "flex-[1_1_0%]",
+      "opacity-100",
+      "overflow-hidden"
+    ],
+    "id": "main-content",
+    "text": "InboxMy InboxContacts1Internal2Team Inboxes💰Sales3 members2😊Service3 members📣Marketing2 members1C"
+  },
+  "allAsides": [],
+  "allNavs": [
+    {
+      "tag": "nav",
+      "classes": [
+        "fixed",
+        "left-0",
+        "top-[var(--top-bar-height)]",
+        "bottom-0",
+        "bg-[var(--bg-surface)]",
+        "border-r",
+        "border-[var(--border-secondary)]",
+        "flex",
+        "flex-col",
+        "py-2",
+        "gap-2",
+        "z-[var(--z-elevated)]",
+        "transition-[width]",
+        "duration-[var(--duration-slow)]",
+        "ease-[var(--ease-spring)]",
+        "overflow-hidden"
+      ],
+      "id": null,
+      "text": "HomeInbox11PhoneMeetingsContactsAccountsTickets2AnalyticsSupervisor viewMarketplaceSettings👋Help"
+    }
+  ]
+}

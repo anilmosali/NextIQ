@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import theme from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import Card from '../components/Card';
@@ -17,6 +17,14 @@ import {
 import ActionsBuilder from '../components/ActionsBuilder';
 import ActionCanvas from '../components/ActionCanvas';
 import CoachingRulesBuilder from '../components/CoachingRulesBuilder';
+import NextIQEngine from '../components/NextIQEngine';
+import NextIQGoals from '../components/NextIQGoals';
+import NextIQGoalDetail from '../components/NextIQGoalDetail';
+import NextIQGuardrails from '../components/NextIQGuardrails';
+import NextIQPlaybooks from '../components/NextIQPlaybooks';
+import NextIQGoalCreate from '../components/NextIQGoalCreate';
+import NextIQGuardrailCreate from '../components/NextIQGuardrailCreate';
+import { NEXTIQ_GOALS, NEXTIQ_GUARDRAILS } from '../data/nextiqConfig';
 
 const sectionDefinitions = {
   account: {
@@ -42,8 +50,12 @@ const sectionDefinitions = {
   nextIQ: {
     title: 'NextIQ',
     items: [
-      { id: 'actionsBuilder', label: 'Actions Builder', icon: Wrench },
-      { id: 'coachingRules', label: 'Coaching Rules', icon: Shield },
+      { id: 'nextiqEngine', label: 'Engine', icon: Settings },
+      { id: 'nextiqGoals', label: 'Goals', icon: Sparkles },
+      { id: 'actionsBuilder', label: 'Actions', icon: Wrench },
+      { id: 'nextiqGuardrails', label: 'Guardrails', icon: Shield },
+      { id: 'coachingRules', label: 'Coaching Rules', icon: Eye },
+      { id: 'nextiqPlaybooks', label: 'Playbooks', icon: BookOpen },
       { id: 'supervisorDashboard', label: 'Supervisor Dashboard', icon: Eye },
     ],
   },
@@ -1150,6 +1162,17 @@ export default function AdminPage({ setActiveNav }) {
   });
   const [hovered, setHovered] = useState(null);
   const [canvasAction, setCanvasAction] = useState(null);
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
+  const [creatingGoal, setCreatingGoal] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState(null);
+  const [customGoals, setCustomGoals] = useState([]);
+  const [goalOverrides, setGoalOverrides] = useState({});
+  const [deletedGoalIds, setDeletedGoalIds] = useState([]);
+  const [creatingGuardrail, setCreatingGuardrail] = useState(false);
+  const [editingGuardrailId, setEditingGuardrailId] = useState(null);
+  const [importedTemplate, setImportedTemplate] = useState(null);
+  const [customGuardrails, setCustomGuardrails] = useState([]);
+  const [guardrailOverrides, setGuardrailOverrides] = useState({});
   const { theme: themeMode } = useTheme();
   const colors = theme.themes[themeMode];
   const mainRef = useRef(null);
@@ -1160,6 +1183,11 @@ export default function AdminPage({ setActiveNav }) {
 
   const navigateToSection = (id) => {
     setActiveSection(id);
+    if (id !== 'nextiqGoals') setSelectedGoalId(null);
+    setCreatingGoal(false);
+    setEditingGoalId(null);
+    setCreatingGuardrail(false);
+    setEditingGuardrailId(null);
     if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     const allItems = Object.values(sectionDefinitions).flatMap((s) => s.items);
     const item = allItems.find((i) => i.id === id);
@@ -1170,6 +1198,41 @@ export default function AdminPage({ setActiveNav }) {
         }
       }
     }
+  };
+
+  const allGoals = useMemo(() => {
+    const base = NEXTIQ_GOALS.filter(g => !deletedGoalIds.includes(g.id)).map(g => goalOverrides[g.id] || g);
+    const custom = customGoals.filter(g => !deletedGoalIds.includes(g.id)).map(g => goalOverrides[g.id] || g);
+    return [...base, ...custom];
+  }, [customGoals, goalOverrides, deletedGoalIds]);
+
+  const handleToggleGoal = (goalId) => {
+    const goal = allGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    const updated = { ...goal, status: goal.status === 'active' ? 'paused' : 'active' };
+    setGoalOverrides(prev => ({ ...prev, [goalId]: updated }));
+  };
+
+  const handleDeleteGoal = (goalId) => {
+    setDeletedGoalIds(prev => [...prev, goalId]);
+    if (selectedGoalId === goalId) setSelectedGoalId(null);
+  };
+
+  const handleSaveGoalEdit = (goalData) => {
+    setGoalOverrides(prev => ({ ...prev, [goalData.id]: goalData }));
+    setEditingGoalId(null);
+    setSelectedGoalId(goalData.id);
+  };
+
+  const allGuardrails = useMemo(() => {
+    const base = NEXTIQ_GUARDRAILS.map(g => guardrailOverrides[g.id] || g);
+    const custom = customGuardrails.map(g => guardrailOverrides[g.id] || g);
+    return [...base, ...custom];
+  }, [customGuardrails, guardrailOverrides]);
+
+  const handleSaveGuardrailEdit = (grData) => {
+    setGuardrailOverrides(prev => ({ ...prev, [grData.id]: grData }));
+    setEditingGuardrailId(null);
   };
 
   return (
@@ -1224,12 +1287,10 @@ export default function AdminPage({ setActiveNav }) {
               >
                 <span style={{
                   fontSize: '11px', fontWeight: 600,
-                  color: key === 'nextIQ' ? theme.colors.blue : colors.textSecondary,
+                  color: colors.textSecondary,
                   textTransform: 'uppercase', letterSpacing: '0.5px',
                   fontFamily: theme.fonts.body,
-                  display: 'flex', alignItems: 'center', gap: '5px',
                 }}>
-                  {key === 'nextIQ' && <Sparkles size={12} color={theme.colors.blue} />}
                   {section.title}
                 </span>
                 {expandedSections[key] ? (
@@ -1284,7 +1345,53 @@ export default function AdminPage({ setActiveNav }) {
         />
       ) : (
         <main ref={mainRef} style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
-          {activeSection === 'actionsBuilder' ? (
+          {activeSection === 'nextiqEngine' ? (
+            <NextIQEngine onNavigateToGoal={(id) => { setSelectedGoalId(id); setActiveSection('nextiqGoals'); }} onNavigateToGoals={() => { setSelectedGoalId(null); setActiveSection('nextiqGoals'); }} onNavigateToGuardrails={() => setActiveSection('nextiqGuardrails')} />
+          ) : activeSection === 'nextiqGoals' && creatingGoal ? (
+            <NextIQGoalCreate
+              onBack={() => setCreatingGoal(false)}
+              onSave={(goal) => { setCustomGoals(prev => [...prev, goal]); setCreatingGoal(false); }}
+            />
+          ) : activeSection === 'nextiqGoals' && editingGoalId ? (
+            <NextIQGoalCreate
+              editGoal={allGoals.find(g => g.id === editingGoalId)}
+              onBack={() => { setEditingGoalId(null); setSelectedGoalId(editingGoalId); }}
+              onSave={handleSaveGoalEdit}
+            />
+          ) : activeSection === 'nextiqGoals' && selectedGoalId ? (
+            <NextIQGoalDetail goalId={selectedGoalId} onBack={() => setSelectedGoalId(null)} onEdit={(id) => setEditingGoalId(id)} allGoals={allGoals} />
+          ) : activeSection === 'nextiqGoals' ? (
+            <NextIQGoals onSelectGoal={(id) => setSelectedGoalId(id)} onCreateGoal={() => setCreatingGoal(true)} onToggleGoal={handleToggleGoal} onDeleteGoal={handleDeleteGoal} allGoals={allGoals} />
+          ) : activeSection === 'nextiqGuardrails' && importedTemplate ? (
+            <NextIQGuardrailCreate
+              editGuardrail={importedTemplate}
+              onBack={() => setImportedTemplate(null)}
+              onSave={(gr) => { setCustomGuardrails(prev => [...prev, gr]); setImportedTemplate(null); }}
+              allGoals={allGoals}
+            />
+          ) : activeSection === 'nextiqGuardrails' && creatingGuardrail ? (
+            <NextIQGuardrailCreate
+              onBack={() => setCreatingGuardrail(false)}
+              onSave={(gr) => { setCustomGuardrails(prev => [...prev, gr]); setCreatingGuardrail(false); }}
+              allGoals={allGoals}
+            />
+          ) : activeSection === 'nextiqGuardrails' && editingGuardrailId ? (
+            <NextIQGuardrailCreate
+              editGuardrail={allGuardrails.find(g => g.id === editingGuardrailId)}
+              onBack={() => setEditingGuardrailId(null)}
+              onSave={handleSaveGuardrailEdit}
+              allGoals={allGoals}
+            />
+          ) : activeSection === 'nextiqGuardrails' ? (
+            <NextIQGuardrails
+              onCreateGuardrail={() => setCreatingGuardrail(true)}
+              onEditGuardrail={(id) => setEditingGuardrailId(id)}
+              onImportTemplate={(tpl) => { setImportedTemplate({ ...tpl, id: `GR-${String(NEXTIQ_GUARDRAILS.length + customGuardrails.length + 1).padStart(3, '0')}` }); }}
+              allGuardrails={allGuardrails}
+            />
+          ) : activeSection === 'nextiqPlaybooks' ? (
+            <NextIQPlaybooks />
+          ) : activeSection === 'actionsBuilder' ? (
             <ActionsBuilder onOpenCanvas={(action) => setCanvasAction(action)} />
           ) : activeSection === 'coachingRules' ? (
             <CoachingRulesBuilder />
