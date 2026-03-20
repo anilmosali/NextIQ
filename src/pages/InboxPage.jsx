@@ -1453,9 +1453,9 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
         <span style={{ flex: 1 }}>{label}</span>
         {badge > 0 && (
           <span style={{
-            minWidth: '20px', height: '20px', padding: '0 5px',
-            backgroundColor: '#DC6868', borderRadius: theme.radii.full,
-            fontSize: '11px', fontWeight: 600, color: '#fff',
+            minWidth: '18px', height: '18px', padding: '0 5px',
+            backgroundColor: '#EF4444', borderRadius: theme.radii.full,
+            fontSize: '10px', fontWeight: 600, color: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>{badge}</span>
         )}
@@ -1505,7 +1505,7 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
             <span style={{
               position: 'absolute', top: '-4px', right: '-4px',
               minWidth: '16px', height: '16px', padding: '0 4px',
-              backgroundColor: '#DC6868', borderRadius: '8px',
+              backgroundColor: '#EF4444', borderRadius: '8px',
               fontSize: '9px', fontWeight: 700, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: `2px solid ${colors.surface}`,
@@ -1532,7 +1532,7 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
             <span style={{
               position: 'absolute', top: '-4px', right: '-4px',
               minWidth: '16px', height: '16px', padding: '0 4px',
-              backgroundColor: '#DC6868', borderRadius: '8px',
+              backgroundColor: '#EF4444', borderRadius: '8px',
               fontSize: '9px', fontWeight: 700, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: `2px solid ${colors.surface}`,
@@ -1563,7 +1563,7 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
               <span style={{
                 position: 'absolute', top: '-4px', right: '-4px',
                 minWidth: '16px', height: '16px', padding: '0 4px',
-                backgroundColor: '#DC6868', borderRadius: '8px',
+                backgroundColor: '#EF4444', borderRadius: '8px',
                 fontSize: '9px', fontWeight: 700, color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: `2px solid ${colors.surface}`,
@@ -1704,9 +1704,9 @@ function InboxSidebar({ activeInbox, setActiveInbox }) {
                 </div>
                 {team.badge > 0 && (
                   <span style={{
-                    minWidth: '20px', height: '20px', padding: '0 5px',
-                    backgroundColor: '#DC6868', borderRadius: theme.radii.full,
-                    fontSize: '11px', fontWeight: 600, color: '#fff',
+                    minWidth: '18px', height: '18px', padding: '0 5px',
+                    backgroundColor: '#EF4444', borderRadius: theme.radii.full,
+                    fontSize: '10px', fontWeight: 600, color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>{team.badge}</span>
                 )}
